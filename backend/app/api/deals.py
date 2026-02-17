@@ -29,7 +29,7 @@ async def create_deal(
     user_id: CurrentUserDep,
 ):
     """Create a new deal."""
-    service = DealService(db, user_id=UUID(user_id) if user_id else None)
+    service = DealService(db, user_id=user_id)
     deal = await service.create_deal(deal_data)
     await db.commit()
     return deal
@@ -79,7 +79,7 @@ async def update_deal(
     user_id: CurrentUserDep,
 ):
     """Update a deal."""
-    service = DealService(db, user_id=UUID(user_id) if user_id else None)
+    service = DealService(db, user_id=user_id)
     deal = await service.update_deal(deal_id, update_data)
 
     if not deal:
@@ -100,7 +100,7 @@ async def update_deal_status(
     user_id: CurrentUserDep,
 ):
     """Update deal status with state machine validation."""
-    service = DealService(db, user_id=UUID(user_id) if user_id else None)
+    service = DealService(db, user_id=user_id)
 
     try:
         deal = await service.update_deal_status(deal_id, status_update.status)
@@ -127,7 +127,7 @@ async def delete_deal(
     user_id: CurrentUserDep,
 ):
     """Soft delete a deal."""
-    service = DealService(db, user_id=UUID(user_id) if user_id else None)
+    service = DealService(db, user_id=user_id)
     deleted = await service.delete_deal(deal_id)
 
     if not deleted:

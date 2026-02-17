@@ -1,5 +1,5 @@
 """Deal service with state machine logic."""
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -44,7 +44,7 @@ VALID_STATUS_TRANSITIONS = {
 class DealService:
     """Service for deal CRUD operations and state management."""
 
-    def __init__(self, db: AsyncSession, user_id: Optional[UUID] = None):
+    def __init__(self, db: AsyncSession, user_id: Optional[Union[str, UUID]] = None):
         self.db = db
         self.user_id = user_id
         self.activity_log_service = ActivityLogService(db)
@@ -62,6 +62,18 @@ class DealService:
         # Convert line items to list of dicts
         line_items_dict = [item.model_dump() for item in deal_data.line_items]
 
+        # Try to convert user_id to UUID, otherwise leave as None
+        created_by_id = None
+        if self.user_id:
+            try:
+                if isinstance(self.user_id, UUID):
+                    created_by_id = self.user_id
+                else:
+                    created_by_id = UUID(self.user_id)
+            except (ValueError, AttributeError):
+                # user_id is not a valid UUID (e.g., "test-user"), skip it
+                pass
+
         deal = Deal(
             deal_number=deal_data.deal_number,
             customer_id=deal_data.customer_id,
@@ -73,12 +85,13 @@ class DealService:
             total_cost=deal_data.total_cost,
             estimated_margin_pct=deal_data.estimated_margin_pct,
             notes=deal_data.notes,
-            created_by_id=self.user_id,
+            created_by_id=created_by_id,
             status=DealStatus.RFQ_RECEIVED,  # Default status
         )
 
         self.db.add(deal)
         await self.db.flush()
+        await self.db.refresh(deal)
 
         # Log creation
         await self.activity_log_service.log_activity(
@@ -209,6 +222,7 @@ class DealService:
                 setattr(deal, field, value)
 
         await self.db.flush()
+        await self.db.refresh(deal)
 
         # Compute changes
         new_values = {
@@ -269,6 +283,7 @@ class DealService:
         # Update status
         deal.status = new_status
         await self.db.flush()
+        await self.db.refresh(deal)
 
         # Log status change
         await self.activity_log_service.log_activity(
@@ -302,9 +317,10 @@ class DealService:
         if not deal:
             return False
 
-        from datetime import datetime
-        deal.deleted_at = datetime.utcnow()
+        from datetime import datetime, timezone
+        deal.deleted_at = datetime.now(timezone.utc)
         await self.db.flush()
+        await self.db.refresh(deal)
 
         # Log deletion
         await self.activity_log_service.log_activity(

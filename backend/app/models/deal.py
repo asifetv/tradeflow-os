@@ -52,10 +52,10 @@ class Deal(Base):
     currency: Mapped[str] = mapped_column(String(3), default="AED", nullable=False)
 
     # Line Items (stored as JSON)
-    line_items: Mapped[dict] = mapped_column(
+    line_items: Mapped[list] = mapped_column(
         JSON,
         nullable=False,
-        default=dict,
+        default=list,
         comment="Array of {description, material_spec, quantity, unit, required_delivery_date}"
     )
 

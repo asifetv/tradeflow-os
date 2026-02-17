@@ -77,7 +77,7 @@ async def test_list_deals_pagination(client, sample_deals):
 @pytest.mark.asyncio
 async def test_list_deals_filter_by_status(client, sample_deals):
     """Test filtering deals by status."""
-    response = client.get(f"/api/deals?status={DealStatus.SOURCING}")
+    response = client.get(f"/api/deals?status={DealStatus.SOURCING.value}")
 
     assert response.status_code == 200
     data = response.json()

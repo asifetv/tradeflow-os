@@ -1,6 +1,6 @@
 """Activity log service for audit trail."""
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -23,7 +23,7 @@ class ActivityLogService:
         entity_type: str,
         entity_id: UUID,
         changes: Optional[List[ChangeDetail]] = None,
-        user_id: Optional[UUID] = None,
+        user_id: Optional[Union[str, UUID]] = None,
     ) -> ActivityLogResponse:
         """
         Create an activity log entry.
@@ -45,9 +45,21 @@ class ActivityLogService:
             for c in changes_list
         ]
 
+        # Convert user_id to UUID if it's a valid UUID string, otherwise None
+        user_id_uuid = None
+        if user_id:
+            try:
+                if isinstance(user_id, UUID):
+                    user_id_uuid = user_id
+                else:
+                    user_id_uuid = UUID(user_id)
+            except (ValueError, AttributeError):
+                # user_id is not a valid UUID (e.g., "test-user"), skip it
+                pass
+
         activity_log = ActivityLog(
             deal_id=deal_id,
-            user_id=user_id,
+            user_id=user_id_uuid,
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,

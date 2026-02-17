@@ -31,10 +31,10 @@ class ActivityLog(Base):
     entity_id: Mapped[UUID] = mapped_column(nullable=False)
 
     # Changes (JSON format)
-    changes: Mapped[dict] = mapped_column(
+    changes: Mapped[list] = mapped_column(
         JSON,
         nullable=False,
-        default=dict,
+        default=list,
         comment="Array of {field, old_value, new_value}"
     )
 
