@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database
   postgres:
-    image: pgvector/pgvector:pg16-latest
+    image: pgvector/pgvector:0.7.0-pg16
     container_name: tradeflow-postgres
     environment:
       POSTGRES_USER: tradeflow
