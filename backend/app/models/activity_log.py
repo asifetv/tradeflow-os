@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, String, Text, func
+from sqlalchemy import DateTime, String, Text, func, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -32,6 +32,7 @@ class ActivityLog(Base):
 
     # Changes (JSON format)
     changes: Mapped[dict] = mapped_column(
+        JSON,
         nullable=False,
         default=dict,
         comment="Array of {field, old_value, new_value}"

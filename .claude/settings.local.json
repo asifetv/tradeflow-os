@@ -5,7 +5,16 @@
       "Bash(docker compose exec:*)",
       "Bash(docker compose build:*)",
       "Bash(docker compose:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(npm view:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(npm run build:*)",
+      "Bash(/Users/asifetv/tradeflow-os/M1_COMPLETION_REPORT.md:*)",
+      "Bash(python -m pytest:*)"
     ]
   }
 }

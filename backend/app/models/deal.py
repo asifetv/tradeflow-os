@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Enum, String, Text, func
+from sqlalchemy import DateTime, Enum, String, Text, func, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 from uuid import UUID
@@ -53,6 +53,7 @@ class Deal(Base):
 
     # Line Items (stored as JSON)
     line_items: Mapped[dict] = mapped_column(
+        JSON,
         nullable=False,
         default=dict,
         comment="Array of {description, material_spec, quantity, unit, required_delivery_date}"

@@ -51,10 +51,9 @@ def create_app() -> FastAPI:
         # TODO: check DB, Redis, MinIO connectivity
         return {"status": "ready"}
 
-    # TODO: Register routers
-    # app.include_router(auth_router, prefix="/api/auth")
-    # app.include_router(deals_router, prefix="/api/deals")
-    # etc.
+    # Register routers
+    from app.api.deals import router as deals_router
+    app.include_router(deals_router)
 
     return app
 
