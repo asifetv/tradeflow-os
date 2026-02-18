@@ -15,6 +15,13 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting TradeFlow OS API", version="0.1.0", env=settings.APP_ENV)
+
+    # Create database tables on startup
+    from app.database import engine, Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables created/verified")
+
     yield
     # Shutdown
     logger.info("Shutting down TradeFlow OS API")
