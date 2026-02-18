@@ -63,6 +63,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
   const handleFormSubmit = async (data: DealFormValues) => {
     setIsSubmitting(true)
     try {
+      console.log("Form data being sent:", JSON.stringify(data, null, 2))
       if (onSubmitCallback) {
         onSubmitCallback(data)
       } else if (initialDeal) {
@@ -71,8 +72,11 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
         const newDeal = await createDealMutation.mutateAsync(data)
         router.push(`/deals/${newDeal.id}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting deal form:", error)
+      if (error.response?.data) {
+        console.error("Backend validation error:", JSON.stringify(error.response.data, null, 2))
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -125,7 +129,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                 <Input
                   id="customer_rfq_ref"
                   placeholder="e.g., RFQ-2024-001"
-                  {...form.register("customer_rfq_ref")}
+                  {...form.register("customer_rfq_ref", {
+                    setValueAs: (value) => value === "" ? null : value
+                  })}
                 />
               </div>
 
@@ -134,7 +140,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                 <Input
                   id="customer_id"
                   placeholder="Customer UUID"
-                  {...form.register("customer_id")}
+                  {...form.register("customer_id", {
+                    setValueAs: (value) => value === "" ? null : value
+                  })}
                 />
               </div>
             </div>
@@ -290,7 +298,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
               id="notes"
               placeholder="Additional notes about this deal..."
               rows={3}
-              {...form.register("notes")}
+              {...form.register("notes", {
+                setValueAs: (value) => value === "" ? null : value
+              })}
             />
           </div>
 
