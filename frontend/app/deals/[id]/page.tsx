@@ -55,8 +55,15 @@ export default function DealDetailPage() {
   const updateStatusMutation = useUpdateDealStatus(dealId)
 
   const handleDelete = async () => {
-    await deleteMutation.mutateAsync(dealId)
-    router.push("/deals")
+    try {
+      console.log("Starting delete for deal:", dealId)
+      await deleteMutation.mutateAsync(dealId)
+      console.log("Delete completed, navigating to deals list")
+      setShowDeleteDialog(false)
+      router.push("/deals")
+    } catch (error) {
+      console.error("Delete error:", error)
+    }
   }
 
   const handleStatusChange = async (newStatus: DealStatus) => {
