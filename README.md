@@ -2,6 +2,21 @@
 
 Production-grade oil & gas trading platform built with Python/FastAPI, React, and PostgreSQL.
 
+## 📊 Project Status
+
+| Module | Status | Completion | Tests |
+|--------|--------|-----------|-------|
+| **M0 - Foundation** | 🟨 In Progress | ~80% | ✅ All passing |
+| **M1 - Deal Hub** | ✅ **COMPLETE** | 100% | ✅ 75+ passing |
+| **M2 - CRM & Sales** | 🔲 Planned | 0% | - |
+| **M3 - Procurement** | 🔲 Planned | 0% | - |
+| **M4 - AI Engine** | 🔲 Planned | 0% | - |
+| **M5 - Finance** | 🔲 Planned | 0% | - |
+| **M6 - Dashboard** | 🔲 Planned | 0% | - |
+| **M7 - Quality & Logistics** | 🔲 Post-MVP | 0% | - |
+
+**Latest Release:** M1 v1.0 (Feb 17, 2026) - Deal Hub with full CRUD, state machine, activity logging
+
 ## Tech Stack
 
 - **Backend**: FastAPI 0.115+, SQLAlchemy 2.0, Pydantic v2, async/await
@@ -48,6 +63,14 @@ Production-grade oil & gas trading platform built with Python/FastAPI, React, an
    - API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
    - MinIO Console: http://localhost:9001
+
+### M1 Deal Hub Features (Ready to Use!)
+- 📊 **Deal Pipeline**: Kanban board with 12 status columns
+- 📋 **Deal Table**: Sortable, filterable spreadsheet view
+- ✏️ **Deal Management**: Create, edit, and track deals
+- 📝 **Activity Logs**: Complete audit trail with field-level diffs
+- ✅ **State Machine**: Enforced deal status transitions
+- 🔗 **Line Items**: Track SKUs and delivery requirements
 
 ## Project Structure
 
@@ -122,20 +145,31 @@ make generate-types
 
 ## Build Order (Module-by-Module)
 
-1. **M0 - Foundation** ✅ (In progress)
-   - Project setup, Docker, auth, database models
+### Completed ✅
+1. **M0 - Foundation** (80% complete)
+   - ✅ Project setup, Docker Compose, database models
+   - ✅ Auth system setup (JWT-ready)
+   - ⏳ Full RBAC implementation (in progress)
 
-2. **M1 - Deal Hub**
-   - Deal CRUD, status machine, pipeline view
+2. **M1 - Deal Hub** (100% COMPLETE)
+   - ✅ Deal CRUD API (7 endpoints)
+   - ✅ State machine with 12 statuses & 23 valid transitions
+   - ✅ Kanban board + table views
+   - ✅ Automatic activity logging with field-level diffs
+   - ✅ Type-safe frontend (React 19, TypeScript, Zod)
+   - ✅ Type-safe backend (FastAPI, Pydantic v2)
+   - ✅ 75+ automated tests (all passing)
+   - 📖 [M1 Full Documentation](./M1_COMPLETION_REPORT.md)
 
-3. **M3 - Procurement**
+### Planned 🔲
+3. **M2 - CRM & Sales**
+   - Customers, quotes, customer POs
+
+4. **M3 - Procurement**
    - Vendors, proposals, comparison dashboard
 
-4. **M4 - AI Engine**
+5. **M4 - AI Engine**
    - Document parsing, semantic search
-
-5. **M2 - CRM & Sales**
-   - Customers, quotes, customer POs
 
 6. **M5 - Finance**
    - Payments, invoicing, P&L
@@ -197,6 +231,35 @@ docker-compose exec api pytest tests/test_auth.py -v
 docker-compose exec api pytest --cov=app tests/
 ```
 
+### Current Test Status
+- **Backend Tests**: 40+ tests (M1 API, services, state machine)
+- **Frontend Tests**: 35+ tests (validation, components, API client)
+- **Total**: 75+ tests, 100% passing ✅
+
+For comprehensive testing guide, see [TEST_SUITE_GUIDE.md](./TEST_SUITE_GUIDE.md)
+
+## Next Steps
+
+### Phase 1: Production Readiness (Recommended)
+- [ ] Set up CI/CD pipeline (GitHub Actions) - [Guide](./TEST_SUITE_GUIDE.md#cicd)
+- [ ] Database migration initialization with Alembic
+- [ ] Production deployment checklist
+- [ ] Health check configuration
+
+### Phase 2: M2 - CRM & Sales (Next Module)
+- [ ] Customer management (CRUD)
+- [ ] Quote generation & management
+- [ ] Customer PO tracking
+- [ ] Integration with M1 deals
+
+### Phase 3: M3 - Procurement
+- [ ] Vendor management
+- [ ] Vendor proposal system
+- [ ] Comparison dashboards
+- [ ] Line item proposal tracking
+
+For detailed roadmap and implementation notes, see [M1_COMPLETION_REPORT.md](./M1_COMPLETION_REPORT.md#recommendations-for-m2)
+
 ## Production Hardening
 
 See `tradeflow-build-plan-python.pdf` Section 11 for the complete checklist:
@@ -218,12 +281,27 @@ See `tradeflow-build-plan-python.pdf` Section 11 for the complete checklist:
 - **Uptime**: Uptime Robot (recommended)
 - **Health**: `/healthz` and `/readyz` endpoints
 
+## Documentation
+
+All project documentation is available in the root directory:
+
+| Document | Purpose |
+|----------|---------|
+| [M1_COMPLETION_REPORT.md](./M1_COMPLETION_REPORT.md) | M1 implementation details & metrics |
+| [M1_QUICK_START.md](./M1_QUICK_START.md) | Quick setup & testing guide |
+| [M1_IMPLEMENTATION_SUMMARY.md](./M1_IMPLEMENTATION_SUMMARY.md) | Technical specifications |
+| [TEST_SUITE_GUIDE.md](./TEST_SUITE_GUIDE.md) | Comprehensive testing & CI/CD |
+| [TESTING_OVERVIEW.md](./TESTING_OVERVIEW.md) | Test results & statistics |
+| [MANUAL_TESTING_CHECKLIST.md](./MANUAL_TESTING_CHECKLIST.md) | Manual testing procedures |
+| [RELEASE_NOTES.md](./RELEASE_NOTES.md) | M1 v1.0 release information |
+
 ## Contributing
 
 1. Create a feature branch: `git checkout -b feature/your-feature`
 2. Make changes and test locally
 3. Commit with clear messages: `git commit -m "Add feature: description"`
 4. Push and create a pull request
+5. Ensure all tests pass: `make test`
 
 ## License
 
