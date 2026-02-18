@@ -1,0 +1,110 @@
+"""API endpoints for customer management."""
+from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, HTTPException, Query, status
+
+from app.deps import CurrentUserDep, SessionDep
+from app.schemas.customer import (
+    CustomerCreate,
+    CustomersListResponse,
+    CustomerResponse,
+    CustomerUpdate,
+)
+from app.services.customer import CustomerService
+
+router = APIRouter(
+    prefix="/api/customers",
+    tags=["customers"],
+)
+
+
+@router.post("", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
+async def create_customer(
+    customer_data: CustomerCreate,
+    db: SessionDep,
+    user_id: CurrentUserDep,
+):
+    """Create a new customer."""
+    service = CustomerService(db, user_id=user_id)
+    customer = await service.create_customer(customer_data)
+    await db.commit()
+    return customer
+
+
+@router.get("", response_model=CustomersListResponse)
+async def list_customers(
+    db: SessionDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    is_active: Optional[bool] = Query(None),
+    country: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+):
+    """List customers with optional filters."""
+    service = CustomerService(db)
+    return await service.list_customers(
+        skip=skip,
+        limit=limit,
+        is_active=is_active,
+        country=country,
+        search=search,
+    )
+
+
+@router.get("/{customer_id}", response_model=CustomerResponse)
+async def get_customer(
+    customer_id: UUID,
+    db: SessionDep,
+):
+    """Get customer detail."""
+    service = CustomerService(db)
+    customer = await service.get_customer(customer_id)
+
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Customer {customer_id} not found",
+        )
+
+    return customer
+
+
+@router.patch("/{customer_id}", response_model=CustomerResponse)
+async def update_customer(
+    customer_id: UUID,
+    update_data: CustomerUpdate,
+    db: SessionDep,
+    user_id: CurrentUserDep,
+):
+    """Update a customer."""
+    service = CustomerService(db, user_id=user_id)
+    customer = await service.update_customer(customer_id, update_data)
+
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Customer {customer_id} not found",
+        )
+
+    await db.commit()
+    return customer
+
+
+@router.delete("/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_customer(
+    customer_id: UUID,
+    db: SessionDep,
+    user_id: CurrentUserDep,
+):
+    """Soft delete a customer."""
+    service = CustomerService(db, user_id=user_id)
+    deleted = await service.delete_customer(customer_id)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Customer {customer_id} not found",
+        )
+
+    await db.commit()

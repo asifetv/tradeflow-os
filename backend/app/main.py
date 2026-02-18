@@ -60,7 +60,13 @@ def create_app() -> FastAPI:
 
     # Register routers
     from app.api.deals import router as deals_router
+    from app.api.customers import router as customers_router
+    from app.api.quotes import router as quotes_router
+    from app.api.customer_pos import router as customer_pos_router
     app.include_router(deals_router)
+    app.include_router(customers_router)
+    app.include_router(quotes_router)
+    app.include_router(customer_pos_router)
 
     return app
 

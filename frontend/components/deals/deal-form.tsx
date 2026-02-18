@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { dealFormSchema, DealFormValues } from "@/lib/validations/deal"
 import { useCreateDeal, useUpdateDeal } from "@/lib/hooks/use-deals"
+import { CustomerSelector } from "@/components/customers/customer-selector"
 
 interface DealFormProps {
   initialDeal?: Deal
@@ -136,13 +137,10 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
               </div>
 
               <div>
-                <Label htmlFor="customer_id">Customer ID</Label>
-                <Input
-                  id="customer_id"
-                  placeholder="Customer UUID"
-                  {...form.register("customer_id", {
-                    setValueAs: (value) => value === "" ? null : value
-                  })}
+                <Label htmlFor="customer_id">Customer</Label>
+                <CustomerSelector
+                  value={form.watch("customer_id") || undefined}
+                  onChange={(value) => form.setValue("customer_id", value || null)}
                 />
               </div>
             </div>

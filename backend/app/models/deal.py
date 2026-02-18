@@ -1,6 +1,6 @@
 """Deal model - the central entity of TradeFlow OS."""
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, List
 
 from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -8,6 +8,11 @@ import enum
 from uuid import UUID
 
 from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models.customer import Customer
+    from app.models.quote import Quote
+    from app.models.customer_po import CustomerPO
 
 
 class DealStatus(str, enum.Enum):
@@ -85,6 +90,23 @@ class Deal(Base):
     deleted_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True
+    )
+
+    # Relationships
+    customer: Mapped[Optional["Customer"]] = relationship(
+        "Customer",
+        foreign_keys=[customer_id],
+        primaryjoin="Deal.customer_id == Customer.id"
+    )
+    quotes: Mapped[List["Quote"]] = relationship(
+        "Quote",
+        back_populates="deal",
+        foreign_keys="Quote.deal_id"
+    )
+    customer_pos: Mapped[List["CustomerPO"]] = relationship(
+        "CustomerPO",
+        back_populates="deal",
+        foreign_keys="CustomerPO.deal_id"
     )
 
     __table_args__ = (
