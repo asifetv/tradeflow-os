@@ -1,18 +1,13 @@
 """Quote model - formal price quotations linked to customers and deals."""
 from datetime import date, datetime
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional
 import enum
 
 from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, Date
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 
 from app.database import Base
-
-if TYPE_CHECKING:
-    from app.models.customer import Customer
-    from app.models.deal import Deal
-    from app.models.customer_po import CustomerPO
 
 
 class QuoteStatus(str, enum.Enum):
@@ -92,28 +87,10 @@ class Quote(Base):
         nullable=True
     )
 
-    # Relationships
-    customer: Mapped["Customer"] = relationship(
-        "Customer",
-        foreign_keys=[customer_id],
-        primaryjoin="Quote.customer_id == Customer.id"
-    )
-    deal: Mapped[Optional["Deal"]] = relationship(
-        "Deal",
-        back_populates="quotes",
-        foreign_keys=[deal_id],
-        primaryjoin="Quote.deal_id == Deal.id"
-    )
-    customer_pos: Mapped[List["CustomerPO"]] = relationship(
-        "CustomerPO",
-        back_populates="quote",
-        foreign_keys="CustomerPO.quote_id"
-    )
 
     __table_args__ = (
-        # Unique constraint on quote_number for active (non-deleted) quotes only
-        Index("ix_quote_number_active", "quote_number", "deleted_at",
-              sqlite_where="deleted_at IS NULL", unique=True),
+        # Index on quote_number for unique lookups
+        Index("ix_quote_number", "quote_number", unique=True),
     )
 
     def __repr__(self) -> str:

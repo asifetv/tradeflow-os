@@ -21,7 +21,8 @@
       "Bash(python3:*)",
       "Bash(npm test:*)",
       "Bash(curl:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(pip install:*)"
     ]
   }
 }

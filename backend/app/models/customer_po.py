@@ -1,18 +1,13 @@
 """CustomerPO model - purchase orders received from customers."""
 from datetime import date, datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 import enum
 
 from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, Date, Float
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 
 from app.database import Base
-
-if TYPE_CHECKING:
-    from app.models.customer import Customer
-    from app.models.deal import Deal
-    from app.models.quote import Quote
 
 
 class CustomerPOStatus(str, enum.Enum):
@@ -84,29 +79,10 @@ class CustomerPO(Base):
         nullable=True
     )
 
-    # Relationships
-    customer: Mapped["Customer"] = relationship(
-        "Customer",
-        foreign_keys=[customer_id],
-        primaryjoin="CustomerPO.customer_id == Customer.id"
-    )
-    deal: Mapped[Optional["Deal"]] = relationship(
-        "Deal",
-        back_populates="customer_pos",
-        foreign_keys=[deal_id],
-        primaryjoin="CustomerPO.deal_id == Deal.id"
-    )
-    quote: Mapped[Optional["Quote"]] = relationship(
-        "Quote",
-        back_populates="customer_pos",
-        foreign_keys=[quote_id],
-        primaryjoin="CustomerPO.quote_id == Quote.id"
-    )
 
     __table_args__ = (
-        # Unique constraint on internal_ref for active (non-deleted) POs only
-        Index("ix_internal_ref_active", "internal_ref", "deleted_at",
-              sqlite_where="deleted_at IS NULL", unique=True),
+        # Index on internal_ref for unique lookups
+        Index("ix_internal_ref", "internal_ref", unique=True),
     )
 
     def __repr__(self) -> str:

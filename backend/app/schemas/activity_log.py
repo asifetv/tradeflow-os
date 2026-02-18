@@ -16,7 +16,7 @@ class ChangeDetail(BaseModel):
 class ActivityLogResponse(BaseModel):
     """Activity log response schema."""
     id: UUID
-    deal_id: UUID
+    deal_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
     action: str
     entity_type: str

@@ -16,7 +16,7 @@ class ActivityLog(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
-    deal_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
+    deal_id: Mapped[Optional[UUID]] = mapped_column(nullable=True, index=True)
     user_id: Mapped[Optional[UUID]] = mapped_column(nullable=True)
 
     # Action

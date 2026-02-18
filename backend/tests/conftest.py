@@ -9,6 +9,9 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 from app.database import Base, get_db
 from app.models.deal import Deal, DealStatus
+from app.models.customer import Customer
+from app.models.quote import Quote, QuoteStatus
+from app.models.customer_po import CustomerPO, CustomerPOStatus
 from app.models.activity_log import ActivityLog
 
 
@@ -125,3 +128,87 @@ async def sample_deals(test_db):
 def user_id():
     """Get a test user ID."""
     return str(uuid4())
+
+
+@pytest_asyncio.fixture
+async def sample_customer(test_db):
+    """Create a sample customer for testing."""
+    customer = Customer(
+        id=uuid4(),
+        customer_code="TEST-CUST-001",
+        company_name="Test Company Inc.",
+        country="Saudi Arabia",
+        city="Riyadh",
+        primary_contact_name="John Smith",
+        primary_contact_email="john@testcompany.com",
+        primary_contact_phone="+966-1-234-5678",
+        payment_terms="Net 60",
+        credit_limit=500000.0,
+        is_active=True,
+    )
+    test_db.add(customer)
+    await test_db.flush()
+    await test_db.refresh(customer)
+    return customer
+
+
+@pytest_asyncio.fixture
+async def sample_quote(test_db, sample_customer, sample_deal):
+    """Create a sample quote for testing."""
+    quote = Quote(
+        id=uuid4(),
+        quote_number="QT-TEST-001",
+        customer_id=sample_customer.id,
+        deal_id=sample_deal.id,
+        title="Test Quote",
+        status=QuoteStatus.DRAFT,
+        total_amount=100000.0,
+        currency="AED",
+        validity_days=30,
+        line_items=[
+            {
+                "description": "Steel Pipe",
+                "material_spec": "API 5L",
+                "quantity": 100,
+                "unit": "MT",
+                "unit_price": 1000.0,
+                "total_price": 100000.0,
+            }
+        ],
+    )
+    test_db.add(quote)
+    await test_db.flush()
+    await test_db.refresh(quote)
+    return quote
+
+
+@pytest_asyncio.fixture
+async def sample_customer_po(test_db, sample_customer, sample_deal, sample_quote):
+    """Create a sample customer PO for testing."""
+    from datetime import date
+    customer_po = CustomerPO(
+        id=uuid4(),
+        internal_ref="CPO-TEST-001",
+        po_number="PO-2024-001",
+        customer_id=sample_customer.id,
+        deal_id=sample_deal.id,
+        quote_id=sample_quote.id,
+        status=CustomerPOStatus.RECEIVED,
+        total_amount=100000.0,
+        currency="AED",
+        po_date=date.today(),
+        line_items=[
+            {
+                "description": "Steel Pipe",
+                "material_spec": "API 5L",
+                "quantity": 100,
+                "unit": "MT",
+                "unit_price": 1000.0,
+                "total_price": 100000.0,
+            }
+        ],
+    )
+    test_db.add(customer_po)
+    await test_db.flush()
+    await test_db.refresh(customer_po)
+    return customer_po

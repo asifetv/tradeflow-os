@@ -1,17 +1,12 @@
 """Customer model - core CRM entity for tracking customer companies and contacts."""
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional
 
 from sqlalchemy import DateTime, String, Text, func, Index, Float, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 
 from app.database import Base
-
-if TYPE_CHECKING:
-    from app.models.deal import Deal
-    from app.models.quote import Quote
-    from app.models.customer_po import CustomerPO
 
 
 class Customer(Base):
@@ -60,27 +55,10 @@ class Customer(Base):
         nullable=True
     )
 
-    # Relationships
-    deals: Mapped[List["Deal"]] = relationship(
-        "Deal",
-        foreign_keys="Deal.customer_id",
-        primaryjoin="Customer.id == Deal.customer_id"
-    )
-    quotes: Mapped[List["Quote"]] = relationship(
-        "Quote",
-        foreign_keys="Quote.customer_id",
-        primaryjoin="Customer.id == Quote.customer_id"
-    )
-    customer_pos: Mapped[List["CustomerPO"]] = relationship(
-        "CustomerPO",
-        foreign_keys="CustomerPO.customer_id",
-        primaryjoin="Customer.id == CustomerPO.customer_id"
-    )
 
     __table_args__ = (
-        # Unique constraint on customer_code for active (non-deleted) customers only
-        Index("ix_customer_code_active", "customer_code", "deleted_at",
-              sqlite_where="deleted_at IS NULL", unique=True),
+        # Index on customer_code for unique lookups
+        Index("ix_customer_code", "customer_code", unique=True),
     )
 
     def __repr__(self) -> str:
