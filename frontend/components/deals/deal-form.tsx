@@ -165,7 +165,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                   type="number"
                   placeholder="0"
                   step="0.01"
-                  {...form.register("total_value", { valueAsNumber: true })}
+                  {...form.register("total_value", {
+                    setValueAs: (value) => value === "" ? null : Number(value)
+                  })}
                 />
               </div>
 
@@ -176,7 +178,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                   type="number"
                   placeholder="0"
                   step="0.01"
-                  {...form.register("total_cost", { valueAsNumber: true })}
+                  {...form.register("total_cost", {
+                    setValueAs: (value) => value === "" ? null : Number(value)
+                  })}
                 />
               </div>
 
@@ -187,7 +191,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                   type="number"
                   placeholder="0"
                   step="0.01"
-                  {...form.register("estimated_margin_pct", { valueAsNumber: true })}
+                  {...form.register("estimated_margin_pct", {
+                    setValueAs: (value) => value === "" ? null : Number(value)
+                  })}
                 />
               </div>
             </div>
