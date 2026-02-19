@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { BarChart3, Users, FileText, ShoppingCart, TrendingUp, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,6 @@ import { useQuotes } from "@/lib/hooks/use-quotes"
 import { useCustomerPos } from "@/lib/hooks/use-customer-pos"
 
 export default function DashboardPage() {
-  const router = useRouter()
   const { data: customersData } = useCustomers(0, 1)
   const { data: dealsData } = useDeals(0, 1)
   const { data: quotesData } = useQuotes(0, 1)
@@ -234,96 +232,6 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Features Grid */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Platform Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-slate-200 hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-2xl">📊</span>
-                  Real-time Analytics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600">
-                  Track deals, quotes, and customer activity with real-time dashboards
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200 hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-2xl">🔗</span>
-                  Smart Linking
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600">
-                  Seamlessly connect customers, deals, quotes, and purchase orders
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200 hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-2xl">📝</span>
-                  Activity Tracking
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600">
-                  Complete audit trail of all changes with timestamps and user info
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200 hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-2xl">⚙️</span>
-                  State Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600">
-                  Intelligent workflow automation with status transitions
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200 hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-2xl">🔐</span>
-                  Enterprise Security
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600">
-                  Type-safe architecture with end-to-end validation
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200 hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-2xl">📱</span>
-                  Responsive Design
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600">
-                  Modern Material Design interface that works on all devices
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       </div>
 
       {/* Footer */}
