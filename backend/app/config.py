@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     # Application
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
-    CORS_ORIGINS: str = "http://localhost:3000"
-    FRONTEND_URL: str = "http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
+    FRONTEND_URL: str = "http://localhost:3001"
     COMPANY_NAME: str = "TradeFlow OS"
 
     # Database
