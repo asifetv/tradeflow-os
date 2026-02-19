@@ -56,9 +56,12 @@ const STATUS_COLORS: Record<DealStatus, { bg: string; border: string; header: st
 interface KanbanBoardProps {
   deals: Deal[]
   isLoading?: boolean
+  visibleStatuses?: DealStatus[]
 }
 
-export function KanbanBoard({ deals, isLoading }: KanbanBoardProps) {
+export function KanbanBoard({ deals, isLoading, visibleStatuses }: KanbanBoardProps) {
+  // Use all statuses by default if not specified
+  const statusesToShow = visibleStatuses || STATUS_ORDER
   // Group deals by status
   const dealsByStatus: Record<DealStatus, Deal[]> = {} as any
 
@@ -71,9 +74,9 @@ export function KanbanBoard({ deals, isLoading }: KanbanBoardProps) {
   }
 
   return (
-    <div className="overflow-x-auto pb-4">
-      <div className="flex gap-4 min-w-full">
-        {STATUS_ORDER.map((status) => {
+    <div className="pb-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {statusesToShow.map((status) => {
           const statusDeals = dealsByStatus[status]
           const totalValue = statusDeals.reduce((sum, deal) => sum + (deal.total_value || 0), 0)
           const avgValue = statusDeals.length > 0 ? totalValue / statusDeals.length : 0
@@ -82,7 +85,7 @@ export function KanbanBoard({ deals, isLoading }: KanbanBoardProps) {
           return (
             <div
               key={status}
-              className={`flex-shrink-0 w-96 ${colors.bg} rounded-xl p-4 border-2 ${colors.border} shadow-sm hover:shadow-md transition-shadow`}
+              className={`${colors.bg} rounded-xl p-4 border-2 ${colors.border} shadow-sm hover:shadow-md transition-shadow flex flex-col`}
             >
               {/* Column Header */}
               <div className={`${colors.header} -mx-4 -mt-4 px-4 py-3 mb-4 rounded-t-lg border-b ${colors.border}`}>
@@ -115,9 +118,9 @@ export function KanbanBoard({ deals, isLoading }: KanbanBoardProps) {
               </div>
 
               {/* Cards Container */}
-              <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
+              <div className="space-y-2 flex-1 overflow-y-auto pr-2">
                 {statusDeals.length === 0 ? (
-                  <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center justify-center py-8">
                     <p className="text-xs text-gray-400 text-center">No deals</p>
                   </div>
                 ) : (

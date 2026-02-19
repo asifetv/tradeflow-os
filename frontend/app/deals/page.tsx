@@ -4,7 +4,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { LayoutGrid, LayoutList, Plus } from "lucide-react"
 
@@ -14,14 +14,49 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { KanbanBoard } from "@/components/deals/kanban-board"
 import { DealsTable } from "@/components/deals/deals-table"
 import { PipelineDashboard } from "@/components/deals/pipeline-dashboard"
+import { StageVisibilityToggle } from "@/components/deals/stage-visibility-toggle"
 import { useDeals } from "@/lib/hooks/use-deals"
 import { TopNav } from "@/components/navigation/top-nav"
+
+const DEFAULT_VISIBLE_STATUSES = [
+  DealStatus.RFQ_RECEIVED,
+  DealStatus.SOURCING,
+  DealStatus.QUOTED,
+  DealStatus.PO_RECEIVED,
+  DealStatus.ORDERED,
+  DealStatus.IN_PRODUCTION,
+  DealStatus.SHIPPED,
+  DealStatus.DELIVERED,
+  DealStatus.INVOICED,
+  DealStatus.PAID,
+  DealStatus.CLOSED,
+  DealStatus.CANCELLED,
+]
 
 export default function DealsPage() {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban")
   const [status, setStatus] = useState<DealStatus | undefined>()
   const [page, setPage] = useState(0)
+  const [visibleStatuses, setVisibleStatuses] = useState<DealStatus[]>(DEFAULT_VISIBLE_STATUSES)
   const limit = 50
+
+  // Load visible stages from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("dealStageVisibility")
+    if (saved) {
+      try {
+        setVisibleStatuses(JSON.parse(saved))
+      } catch {
+        setVisibleStatuses(DEFAULT_VISIBLE_STATUSES)
+      }
+    }
+  }, [])
+
+  // Save visible stages to localStorage
+  const handleVisibilityChange = (statuses: DealStatus[]) => {
+    setVisibleStatuses(statuses)
+    localStorage.setItem("dealStageVisibility", JSON.stringify(statuses))
+  }
 
   const { data, isLoading } = useDeals(page * limit, limit, status)
 
@@ -71,27 +106,35 @@ export default function DealsPage() {
         {/* Controls */}
         <Card className="bg-card border border-border shadow-sm">
           <CardContent className="pt-6 space-y-4">
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">View:</span>
-              <Button
-                variant={viewMode === "kanban" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("kanban")}
-                className="gap-2"
-              >
-                <LayoutGrid className="w-4 h-4" />
-                Kanban
-              </Button>
-              <Button
-                variant={viewMode === "table" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("table")}
-                className="gap-2"
-              >
-                <LayoutList className="w-4 h-4" />
-                Table
-              </Button>
+            {/* View Mode Toggle and Stage Controls */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">View:</span>
+                <Button
+                  variant={viewMode === "kanban" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("kanban")}
+                  className="gap-2"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  Kanban
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                  className="gap-2"
+                >
+                  <LayoutList className="w-4 h-4" />
+                  Table
+                </Button>
+              </div>
+              {viewMode === "kanban" && (
+                <StageVisibilityToggle
+                  visibleStatuses={visibleStatuses}
+                  onVisibilityChange={handleVisibilityChange}
+                />
+              )}
             </div>
 
             {/* Status Filter */}
@@ -129,7 +172,11 @@ export default function DealsPage() {
         {/* View Content */}
         <div>
           {viewMode === "kanban" ? (
-            <KanbanBoard deals={data?.deals || []} isLoading={isLoading} />
+            <KanbanBoard
+              deals={data?.deals || []}
+              isLoading={isLoading}
+              visibleStatuses={visibleStatuses}
+            />
           ) : (
             <Card className="bg-card border border-border shadow-sm">
               <CardContent className="pt-6">
