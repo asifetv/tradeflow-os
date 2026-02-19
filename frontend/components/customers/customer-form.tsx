@@ -68,7 +68,6 @@ export function CustomerForm({ initialCustomer }: CustomerFormProps) {
     payment_terms: initialCustomer.payment_terms || undefined,
     credit_limit: initialCustomer.credit_limit || undefined,
   } : {
-    customer_code: "",
     company_name: "",
     country: "",
     is_active: true,
@@ -103,21 +102,13 @@ export function CustomerForm({ initialCustomer }: CustomerFormProps) {
             {/* Basic Information Section */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+              {initialCustomer && (
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-600">Customer Code</p>
+                  <p className="text-lg font-semibold text-slate-900">{initialCustomer.customer_code}</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="customer_code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Customer Code *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., CUST-001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="company_name"

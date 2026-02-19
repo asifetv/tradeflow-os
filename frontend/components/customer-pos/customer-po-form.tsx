@@ -36,7 +36,6 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
   const form = useForm<CustomerPoFormValues>({
     resolver: zodResolver(customerPoFormSchema),
     defaultValues: initialCustomerPo || {
-      internal_ref: "",
       po_number: "",
       customer_id: "",
       deal_id: undefined,
@@ -93,21 +92,13 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
             {/* Basic Information Section */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+              {initialCustomerPo && (
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-600">Internal Reference</p>
+                  <p className="text-lg font-semibold text-slate-900">{initialCustomerPo.internal_ref}</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="internal_ref"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Internal Reference *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., CPO-2024-001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="po_number"

@@ -48,7 +48,6 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
           notes: initialDeal.notes,
         }
       : {
-          deal_number: "",
           customer_id: undefined,
           customer_rfq_ref: undefined,
           description: "",
@@ -98,20 +97,14 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
           <div>
             <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="deal_number">Deal Number*</Label>
-                <Input
-                  id="deal_number"
-                  placeholder="e.g., DEAL-001"
-                  {...form.register("deal_number")}
-                  disabled={!!initialDeal}
-                />
-                {errors.deal_number && (
-                  <p className="text-sm text-red-600 mt-1">{errors.deal_number.message}</p>
-                )}
+            {initialDeal && (
+              <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-sm text-slate-600">Deal Number</p>
+                <p className="text-lg font-semibold text-slate-900">{initialDeal.deal_number}</p>
               </div>
+            )}
 
+            <div className="grid grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="currency">Currency</Label>
                 <Input

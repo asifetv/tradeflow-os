@@ -36,7 +36,6 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
   const form = useForm<QuoteFormValues>({
     resolver: zodResolver(quoteFormSchema),
     defaultValues: initialQuote || {
-      quote_number: "",
       customer_id: "",
       deal_id: undefined,
       title: "",
@@ -100,21 +99,13 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
             {/* Basic Information Section */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+              {initialQuote && (
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-600">Quote Number</p>
+                  <p className="text-lg font-semibold text-slate-900">{initialQuote.quote_number}</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="quote_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quote Number *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., QT-2024-001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="title"
