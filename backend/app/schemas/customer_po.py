@@ -30,7 +30,7 @@ class CustomerPOLineItemResponse(BaseModel):
 
 class CustomerPOCreate(BaseModel):
     """Schema for creating a customer PO."""
-    internal_ref: str = Field(..., min_length=1, max_length=50)
+    internal_ref: Optional[str] = Field(None, min_length=1, max_length=50, description="Auto-generated if not provided")
     po_number: str = Field(..., min_length=1, max_length=100)
     customer_id: UUID
     deal_id: Optional[UUID] = None

@@ -59,6 +59,11 @@ class DealService:
         Returns:
             Created deal response
         """
+        # Auto-generate deal_number if not provided
+        deal_number = deal_data.deal_number
+        if not deal_number:
+            deal_number = await self._generate_deal_number()
+
         # Convert line items to list of dicts
         line_items_dict = [item.model_dump() for item in deal_data.line_items]
 
@@ -75,7 +80,7 @@ class DealService:
                 pass
 
         deal = Deal(
-            deal_number=deal_data.deal_number,
+            deal_number=deal_number,
             customer_id=deal_data.customer_id,
             customer_rfq_ref=deal_data.customer_rfq_ref,
             description=deal_data.description,
@@ -341,6 +346,22 @@ class DealService:
         )
 
         return True
+
+    async def _generate_deal_number(self) -> str:
+        """
+        Generate a unique deal number (DEAL-001, DEAL-002, etc.).
+
+        Returns:
+            Generated deal number
+        """
+        # Get the maximum numeric part of existing deal numbers
+        query = select(func.count(Deal.id)).where(Deal.deleted_at.is_(None))
+        result = await self.db.execute(query)
+        count = result.scalar() or 0
+
+        # Generate next number
+        next_num = count + 1
+        return f"DEAL-{next_num:03d}"
 
     async def _get_deal_internal(self, deal_id: UUID) -> Optional[Deal]:
         """Internal method to get deal (excludes soft-deleted)."""

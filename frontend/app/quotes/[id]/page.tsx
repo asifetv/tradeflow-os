@@ -63,52 +63,49 @@ export default function QuoteDetailPage() {
           </Button>
         </Link>
         <div className="flex justify-between items-center flex-1">
-        <h1 className="text-3xl font-bold">{quote?.title || "Quote"}</h1>
-        <div className="flex gap-2">
-          {validTransitions.length > 0 && (
-            <Select onValueChange={(value) => handleStatusChange(value as QuoteStatus)}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Change status..." />
-              </SelectTrigger>
-              <SelectContent>
-                {validTransitions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <h1 className="text-3xl font-bold">{quote?.title || "Quote"}</h1>
+          <div className="flex gap-2">
+            {validTransitions.length > 0 && (
+              <Select onValueChange={(value) => handleStatusChange(value as QuoteStatus)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Change status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {validTransitions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
-          <Link href={`/quotes/${id}/edit`}>
-            <Button>Edit</Button>
-          </Link>
+            <Link href={`/quotes/${id}/edit`}>
+              <Button>Edit</Button>
+            </Link>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">Delete</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Quote</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this quote? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="flex gap-2">
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                      </div>
-      </div>
-            </AlertDialogContent>
-          </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Delete</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Quote</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this quote? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="flex gap-2">
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
                 </div>
-      </div>
-              </div>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
       </div>
 
       <QuoteCard quoteId={id} />
-            </div>
-      </div>
+    </div>
   )
 }

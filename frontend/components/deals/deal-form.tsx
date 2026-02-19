@@ -76,7 +76,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
         await updateDealMutation.mutateAsync(data)
         router.push(`/deals/${initialDeal.id}`)
       } else {
-        const newDeal = await createDealMutation.mutateAsync(data)
+        // Exclude auto-generated deal_number on creation
+        const { deal_number, ...createData } = data
+        const newDeal = await createDealMutation.mutateAsync(createData)
         router.push(`/deals/${newDeal.id}`)
       }
     } catch (error: any) {

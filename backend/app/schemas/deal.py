@@ -28,7 +28,7 @@ class LineItemResponse(BaseModel):
 
 class DealCreate(BaseModel):
     """Schema for creating a deal."""
-    deal_number: str = Field(..., description="Unique deal identifier")
+    deal_number: Optional[str] = Field(None, description="Auto-generated if not provided")
     customer_id: Optional[UUID] = None
     customer_rfq_ref: Optional[str] = None
     description: str

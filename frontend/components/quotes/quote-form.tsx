@@ -80,7 +80,9 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
         await updateMutation.mutateAsync(payload as any)
         router.push(`/quotes/${initialQuote.id}`)
       } else {
-        const newQuote = await createMutation.mutateAsync(payload as any)
+        // Exclude auto-generated quote_number on creation
+        const { quote_number, ...createData } = payload
+        const newQuote = await createMutation.mutateAsync(createData as any)
         router.push(`/quotes/${newQuote.id}`)
       }
     } catch (error: any) {

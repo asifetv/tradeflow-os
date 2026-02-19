@@ -1,19 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { BarChart3, Users, FileText, ShoppingCart, TrendingUp, Plus } from "lucide-react"
+import { BarChart3, Users, FileText, ShoppingCart, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { useCustomers } from "@/lib/hooks/use-customers"
 import { useDeals } from "@/lib/hooks/use-deals"
 import { useQuotes } from "@/lib/hooks/use-quotes"
 import { useCustomerPos } from "@/lib/hooks/use-customer-pos"
 
 export default function DashboardPage() {
-  const { data: customersData } = useCustomers(0, 1)
-  const { data: dealsData } = useDeals(0, 1)
-  const { data: quotesData } = useQuotes(0, 1)
-  const { data: posData } = useCustomerPos(0, 1)
+  const { data: customersData } = useCustomers(0, 50, undefined, undefined, undefined)
+  const { data: dealsData } = useDeals(0, 50)
+  const { data: quotesData } = useQuotes(0, 50)
+  const { data: posData } = useCustomerPos(0, 50)
 
   const stats = [
     {
@@ -82,156 +82,156 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {stats.map((stat) => {
-            const Icon = stat.icon
-            return (
-              <Link key={stat.label} href={stat.href}>
-                <Card className="h-full hover:shadow-lg transition-all duration-300 cursor-pointer border-0 group">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 rounded-lg ${stat.lightColor}`}>
-                        <Icon className={`h-6 w-6 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`} />
-                      </div>
-                      <TrendingUp className="h-5 w-5 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <p className="text-slate-600 text-sm font-medium">{stat.label}</p>
-                    <p className="text-3xl font-bold text-slate-900 mt-2">{stat.value}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Navigation Cards */}
+        {/* Module Overview Cards */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Quick Access</h2>
-              <p className="text-slate-500 mt-1">Navigate to your key business modules</p>
+              <h2 className="text-2xl font-bold text-slate-900">Business Overview</h2>
+              <p className="text-slate-500 mt-1">View metrics and manage your modules</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Customers */}
-            <Link href="/customers">
-              <Card className="h-full hover:shadow-lg hover:border-blue-200 transition-all duration-300 cursor-pointer group border-slate-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
-                      Customers
-                    </CardTitle>
-                    <Users className="h-5 w-5 text-blue-500" />
+            {stats.map((stat) => {
+              const Icon = stat.icon
+              const descriptions: Record<string, string> = {
+                "Customers": "Manage customer relationships and details",
+                "Deals": "Track and manage business deals",
+                "Quotes": "Generate and manage price quotes",
+                "Purchase Orders": "Track customer purchase orders",
+              }
+
+              return (
+                <Link key={stat.label} href={stat.href}>
+                  <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 bg-white overflow-hidden">
+                    {/* Color accent bar */}
+                    <div className={`h-1 bg-gradient-to-r ${stat.color}`}></div>
+
+                    <CardContent className="p-5 flex flex-col h-full">
+                      {/* Top Section: Count + Icon */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{stat.label}</p>
+                          <p className={`text-5xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent leading-tight`}>
+                            {stat.value}
+                          </p>
+                        </div>
+                        <div className={`p-3 rounded-lg ${stat.lightColor} group-hover:scale-110 transition-transform shrink-0`}>
+                          <Icon className={`h-6 w-6 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`} />
+                        </div>
+                      </div>
+
+                      {/* Description - flexible growth */}
+                      <p className="text-sm text-slate-600 leading-relaxed flex-grow mb-4">
+                        {descriptions[stat.label]}
+                      </p>
+
+                      {/* Action Footer */}
+                      <div className="flex items-center gap-2 text-sm pt-2 border-t border-slate-100 group-hover:translate-x-1 transition-transform">
+                        <span className="font-semibold text-slate-700">View All</span>
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">Quick Actions</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/customers/new">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 bg-white overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-3 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+                      <Plus className="h-6 w-6 text-blue-600" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>Manage customer relationships and details</CardDescription>
-                  <Button variant="ghost" size="sm" className="mt-4 w-full justify-start text-blue-600 hover:text-blue-700">
-                    View All →
-                  </Button>
+                  <h3 className="font-semibold text-slate-900 text-center mb-2">New Customer</h3>
+                  <p className="text-sm text-slate-600 text-center flex-grow">Add a new customer</p>
+                  <div className="flex items-center justify-center gap-1 text-sm text-blue-600 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+                    <span>Create</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
 
-            {/* Deals */}
-            <Link href="/deals">
-              <Card className="h-full hover:shadow-lg hover:border-purple-200 transition-all duration-300 cursor-pointer group border-slate-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg group-hover:text-purple-600 transition-colors">
-                      Deals
-                    </CardTitle>
-                    <BarChart3 className="h-5 w-5 text-purple-500" />
+            <Link href="/deals/new">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 bg-white overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-purple-500 to-purple-600"></div>
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-3 rounded-lg bg-purple-50 group-hover:scale-110 transition-transform">
+                      <Plus className="h-6 w-6 text-purple-600" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>Track and manage business deals</CardDescription>
-                  <Button variant="ghost" size="sm" className="mt-4 w-full justify-start text-purple-600 hover:text-purple-700">
-                    View All →
-                  </Button>
+                  <h3 className="font-semibold text-slate-900 text-center mb-2">New Deal</h3>
+                  <p className="text-sm text-slate-600 text-center flex-grow">Create a business deal</p>
+                  <div className="flex items-center justify-center gap-1 text-sm text-purple-600 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+                    <span>Create</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
 
-            {/* Quotes */}
-            <Link href="/quotes">
-              <Card className="h-full hover:shadow-lg hover:border-green-200 transition-all duration-300 cursor-pointer group border-slate-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg group-hover:text-green-600 transition-colors">
-                      Quotes
-                    </CardTitle>
-                    <FileText className="h-5 w-5 text-green-500" />
+            <Link href="/quotes/new">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 bg-white overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-green-500 to-green-600"></div>
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-3 rounded-lg bg-green-50 group-hover:scale-110 transition-transform">
+                      <Plus className="h-6 w-6 text-green-600" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>Generate and manage price quotes</CardDescription>
-                  <Button variant="ghost" size="sm" className="mt-4 w-full justify-start text-green-600 hover:text-green-700">
-                    View All →
-                  </Button>
+                  <h3 className="font-semibold text-slate-900 text-center mb-2">New Quote</h3>
+                  <p className="text-sm text-slate-600 text-center flex-grow">Generate a price quote</p>
+                  <div className="flex items-center justify-center gap-1 text-sm text-green-600 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+                    <span>Create</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
 
-            {/* Purchase Orders */}
-            <Link href="/customer-pos">
-              <Card className="h-full hover:shadow-lg hover:border-orange-200 transition-all duration-300 cursor-pointer group border-slate-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg group-hover:text-orange-600 transition-colors">
-                      Purchase Orders
-                    </CardTitle>
-                    <ShoppingCart className="h-5 w-5 text-orange-500" />
+            <Link href="/customer-pos/new">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 bg-white overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-orange-500 to-orange-600"></div>
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-3 rounded-lg bg-orange-50 group-hover:scale-110 transition-transform">
+                      <Plus className="h-6 w-6 text-orange-600" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>Track customer purchase orders</CardDescription>
-                  <Button variant="ghost" size="sm" className="mt-4 w-full justify-start text-orange-600 hover:text-orange-700">
-                    View All →
-                  </Button>
+                  <h3 className="font-semibold text-slate-900 text-center mb-2">New PO</h3>
+                  <p className="text-sm text-slate-600 text-center flex-grow">Track a purchase order</p>
+                  <div className="flex items-center justify-center gap-1 text-sm text-orange-600 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+                    <span>Create</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <Card className="border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardHeader>
-            <CardTitle className="text-xl">Quick Actions</CardTitle>
-            <CardDescription>Common tasks you might want to do</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              <Link href="/customers/new">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 border-slate-300 hover:bg-blue-50">
-                  <Plus className="h-4 w-4" />
-                  Create New Customer
-                </Button>
-              </Link>
-              <Link href="/deals/new">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 border-slate-300 hover:bg-purple-50">
-                  <Plus className="h-4 w-4" />
-                  Create New Deal
-                </Button>
-              </Link>
-              <Link href="/quotes/new">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 border-slate-300 hover:bg-green-50">
-                  <Plus className="h-4 w-4" />
-                  Create New Quote
-                </Button>
-              </Link>
-              <Link href="/customer-pos/new">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 border-slate-300 hover:bg-orange-50">
-                  <Plus className="h-4 w-4" />
-                  Create New PO
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Footer */}

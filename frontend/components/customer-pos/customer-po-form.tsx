@@ -73,7 +73,9 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
         await updateMutation.mutateAsync(payload as any)
         router.push(`/customer-pos/${initialCustomerPo.id}`)
       } else {
-        const newCustomerPo = await createMutation.mutateAsync(payload as any)
+        // Exclude auto-generated internal_ref on creation
+        const { internal_ref, ...createData } = payload
+        const newCustomerPo = await createMutation.mutateAsync(createData as any)
         router.push(`/customer-pos/${newCustomerPo.id}`)
       }
     } catch (error: any) {

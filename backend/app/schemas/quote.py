@@ -30,7 +30,7 @@ class QuoteLineItemResponse(BaseModel):
 
 class QuoteCreate(BaseModel):
     """Schema for creating a quote."""
-    quote_number: str = Field(..., min_length=1, max_length=50)
+    quote_number: Optional[str] = Field(None, min_length=1, max_length=50, description="Auto-generated if not provided")
     customer_id: UUID
     deal_id: Optional[UUID] = None
     title: str = Field(..., min_length=1, max_length=200)

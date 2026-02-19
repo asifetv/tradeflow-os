@@ -44,11 +44,16 @@ class CustomerPOService:
         Returns:
             Created customer PO response
         """
+        # Auto-generate internal_ref if not provided
+        internal_ref = po_data.internal_ref
+        if not internal_ref:
+            internal_ref = await self._generate_internal_ref()
+
         # Convert line items to list of dicts
         line_items_dict = [item.model_dump() for item in po_data.line_items]
 
         customer_po = CustomerPO(
-            internal_ref=po_data.internal_ref,
+            internal_ref=internal_ref,
             po_number=po_data.po_number,
             customer_id=po_data.customer_id,
             deal_id=po_data.deal_id,
@@ -359,6 +364,25 @@ class CustomerPOService:
         )
 
         return True
+
+    async def _generate_internal_ref(self) -> str:
+        """
+        Generate a unique internal reference (CPO-2024-001, CPO-2024-002, etc.).
+
+        Returns:
+            Generated internal reference
+        """
+        from datetime import datetime
+
+        # Get the maximum numeric part of customer POs from current year
+        current_year = datetime.now().year
+        query = select(func.count(CustomerPO.id)).where(CustomerPO.deleted_at.is_(None))
+        result = await self.db.execute(query)
+        count = result.scalar() or 0
+
+        # Generate next number
+        next_num = count + 1
+        return f"CPO-{current_year}-{next_num:03d}"
 
     async def _get_customer_po_internal(self, po_id: UUID) -> Optional[CustomerPO]:
         """Internal method to get customer PO (excludes soft-deleted)."""

@@ -45,11 +45,16 @@ class QuoteService:
         Returns:
             Created quote response
         """
+        # Auto-generate quote_number if not provided
+        quote_number = quote_data.quote_number
+        if not quote_number:
+            quote_number = await self._generate_quote_number()
+
         # Convert line items to list of dicts
         line_items_dict = [item.model_dump() for item in quote_data.line_items]
 
         quote = Quote(
-            quote_number=quote_data.quote_number,
+            quote_number=quote_number,
             customer_id=quote_data.customer_id,
             deal_id=quote_data.deal_id,
             title=quote_data.title,
@@ -322,6 +327,25 @@ class QuoteService:
         )
 
         return True
+
+    async def _generate_quote_number(self) -> str:
+        """
+        Generate a unique quote number (QT-2024-001, QT-2024-002, etc.).
+
+        Returns:
+            Generated quote number
+        """
+        from datetime import datetime
+
+        # Get the maximum numeric part of quotes from current year
+        current_year = datetime.now().year
+        query = select(func.count(Quote.id)).where(Quote.deleted_at.is_(None))
+        result = await self.db.execute(query)
+        count = result.scalar() or 0
+
+        # Generate next number
+        next_num = count + 1
+        return f"QT-{current_year}-{next_num:03d}"
 
     async def _get_quote_internal(self, quote_id: UUID) -> Optional[Quote]:
         """Internal method to get quote (excludes soft-deleted)."""

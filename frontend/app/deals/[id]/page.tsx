@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from "@/components/deals/status-badge"
 import { ActivityTimeline } from "@/components/deals/activity-timeline"
 import { useDeal, useDealActivity, useDeleteDeal, useUpdateDealStatus } from "@/lib/hooks/use-deals"
+import { useCustomer } from "@/lib/hooks/use-customers"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DealStatus as DealStatusEnum } from "@/lib/types/deal"
 import { format } from "date-fns"
@@ -52,6 +53,7 @@ export default function DealDetailPage() {
 
   const { data: deal, isLoading: isDealLoading } = useDeal(dealId)
   const { data: activityData, isLoading: isActivityLoading } = useDealActivity(dealId)
+  const { data: customer } = useCustomer(deal?.customer_id || "")
   const deleteMutation = useDeleteDeal()
   const updateStatusMutation = useUpdateDealStatus(dealId)
 
@@ -72,23 +74,22 @@ export default function DealDetailPage() {
   }
 
   if (isDealLoading) {
-    return <div className="flex items-center justify-center p-8">Loading...        </div>
-      </div>
+    return <div className="flex items-center justify-center p-8">Loading...</div>
   }
 
   if (!deal) {
     return (
-    <>
-      <TopNav />      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Deal not found</h2>
-          <Link href="/deals">
-            <Button variant="outline">Back to Deals</Button>
-          </Link>
-                </div>
-      </div>
-              </div>
-      </div>
+      <>
+        <TopNav />
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Deal not found</h2>
+            <Link href="/deals">
+              <Button variant="outline">Back to Deals</Button>
+            </Link>
+          </div>
+        </div>
+      </>
     )
   }
 
@@ -96,73 +97,67 @@ export default function DealDetailPage() {
 
   return (
     <>
-      <TopNav />    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/deals">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold">{deal.deal_number}</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <StatusBadge status={deal.status} />
-              <p className="text-gray-600 text-sm">
-                {deal.customer_rfq_ref && `RFQ: ${deal.customer_rfq_ref}`}
-              </p>
-                    </div>
-      </div>
-                  </div>
-      </div>
-                </div>
-      </div>
-
-        <div className="flex gap-2">
-          <Link href={`/deals/${dealId}/edit`}>
-            <Button variant="outline">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </Link>
-
-          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <DialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
+      <TopNav />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/deals">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Deal</DialogTitle>
-              </DialogHeader>
-              <p className="text-gray-600 mb-4">
-                Are you sure you want to delete this deal? This action cannot be undone.
-              </p>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDeleteDialog(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                >
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold">{deal.deal_number}</h1>
+              <div className="flex items-center gap-2 mt-2">
+                <StatusBadge status={deal.status} />
+                <p className="text-gray-600 text-sm">
+                  {deal.customer_rfq_ref && `RFQ: ${deal.customer_rfq_ref}`}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Link href={`/deals/${dealId}/edit`}>
+              <Button variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            </Link>
+
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
-                      </div>
-      </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Deal</DialogTitle>
+                </DialogHeader>
+                <p className="text-gray-600 mb-4">
+                  Are you sure you want to delete this deal? This action cannot be undone.
+                </p>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </Button>
                 </div>
-      </div>
-              </div>
-      </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
 
       {/* Status Management */}
       {validTransitions.length > 0 && (
@@ -174,8 +169,7 @@ export default function DealDetailPage() {
                 <p className="text-xs text-gray-500 mt-1">
                   {validTransitions.length} valid transition{validTransitions.length !== 1 ? "s" : ""}
                 </p>
-                      </div>
-      </div>
+              </div>
               <div className="flex gap-2">
                 {validTransitions.map((status) => (
                   <Button
@@ -187,10 +181,8 @@ export default function DealDetailPage() {
                     {status.replace(/_/g, " ").toUpperCase()}
                   </Button>
                 ))}
-                      </div>
-      </div>
-                    </div>
-      </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -204,8 +196,8 @@ export default function DealDetailPage() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Basic Info */}
             <Card>
               <CardHeader>
@@ -215,6 +207,44 @@ export default function DealDetailPage() {
                 <p className="text-sm text-gray-600">{deal.description}</p>
               </CardContent>
             </Card>
+
+            {/* Customer Info */}
+            {deal.customer_id && customer ? (
+              <Link href={`/customers/${deal.customer_id}`}>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+                  <CardHeader>
+                    <CardTitle className="text-base">Customer</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-lg font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                      {customer.company_name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">{customer.customer_code}</p>
+                    {customer.primary_contact_name && (
+                      <p className="text-sm text-gray-600 mt-2">{customer.primary_contact_name}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            ) : deal.customer_id ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Customer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">Loading customer...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Customer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">No customer assigned</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Created Info */}
             <Card>
@@ -227,8 +257,7 @@ export default function DealDetailPage() {
                   <p className="text-sm font-medium">
                     {format(new Date(deal.created_at), "MMM d, yyyy HH:mm")}
                   </p>
-                        </div>
-      </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -243,17 +272,16 @@ export default function DealDetailPage() {
                 </p>
               </CardContent>
             </Card>
-                  </div>
-      </div>
+          </div>
 
           {/* Financial Summary */}
-          <div className="grid grid-cols-4 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Total Value</CardTitle>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-transparent border-l-4 border-l-blue-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-semibold text-gray-900">
                   {deal.total_value !== null
                     ? `${deal.currency} ${deal.total_value.toLocaleString()}`
                     : "-"}
@@ -261,12 +289,12 @@ export default function DealDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Total Cost</CardTitle>
+            <Card className="bg-gradient-to-br from-orange-50 to-transparent border-l-4 border-l-orange-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Cost</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-semibold text-gray-900">
                   {deal.total_cost !== null
                     ? `${deal.currency} ${deal.total_cost.toLocaleString()}`
                     : "-"}
@@ -274,29 +302,28 @@ export default function DealDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Est. Margin %</CardTitle>
+            <Card className="bg-gradient-to-br from-green-50 to-transparent border-l-4 border-l-green-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Est. Margin %</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-semibold text-gray-900">
                   {deal.estimated_margin_pct !== null ? `${deal.estimated_margin_pct.toFixed(2)}%` : "-"}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Act. Margin %</CardTitle>
+            <Card className="bg-gradient-to-br from-purple-50 to-transparent border-l-4 border-l-purple-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Act. Margin %</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-semibold text-gray-900">
                   {deal.actual_margin_pct !== null ? `${deal.actual_margin_pct.toFixed(2)}%` : "-"}
                 </p>
               </CardContent>
             </Card>
-                  </div>
-      </div>
+          </div>
 
           {deal.notes && (
             <Card>
@@ -328,33 +355,25 @@ export default function DealDetailPage() {
                         <div>
                           <p className="text-xs text-gray-500">Description</p>
                           <p className="font-semibold">{item.description}</p>
-                                </div>
-      </div>
+                        </div>
                         <div>
                           <p className="text-xs text-gray-500">Material Spec</p>
                           <p className="font-semibold">{item.material_spec}</p>
-                                </div>
-      </div>
-                              </div>
-      </div>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div>
                           <p className="text-xs text-gray-500">Quantity</p>
                           <p className="text-sm">{item.quantity} {item.unit}</p>
-                                </div>
-      </div>
+                        </div>
                         <div>
                           <p className="text-xs text-gray-500">Required Delivery</p>
                           <p className="text-sm">{item.required_delivery_date}</p>
-                                </div>
-      </div>
-                              </div>
-      </div>
-                            </div>
-      </div>
-                  ))}
                         </div>
-      </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -372,9 +391,7 @@ export default function DealDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      </Tabs>
-            </div>
-      </div>
-      </>
+    </div>
+  </>
   )
 }
