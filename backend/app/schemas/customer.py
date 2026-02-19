@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class CustomerCreate(BaseModel):
     """Schema for creating a customer."""
-    customer_code: str = Field(..., min_length=1, max_length=50, description="Unique customer code")
+    customer_code: Optional[str] = Field(None, min_length=1, max_length=50, description="Auto-generated if not provided")
     company_name: str = Field(..., min_length=1, max_length=200)
     country: str = Field(..., min_length=1, max_length=100)
     city: Optional[str] = Field(None, max_length=100)

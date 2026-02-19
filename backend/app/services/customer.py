@@ -33,8 +33,13 @@ class CustomerService:
         Returns:
             Created customer response
         """
+        # Auto-generate customer code if not provided
+        customer_code = customer_data.customer_code
+        if not customer_code:
+            customer_code = await self._generate_customer_code()
+
         customer = Customer(
-            customer_code=customer_data.customer_code,
+            customer_code=customer_code,
             company_name=customer_data.company_name,
             country=customer_data.country,
             city=customer_data.city,
@@ -62,6 +67,22 @@ class CustomerService:
         )
 
         return CustomerResponse.model_validate(customer)
+
+    async def _generate_customer_code(self) -> str:
+        """
+        Generate a unique customer code (CUST-001, CUST-002, etc.).
+
+        Returns:
+            Generated customer code
+        """
+        # Get the maximum numeric part of existing customer codes
+        query = select(func.count(Customer.id)).where(Customer.deleted_at.is_(None))
+        result = await self.db.execute(query)
+        count = result.scalar() or 0
+
+        # Generate next code
+        next_num = count + 1
+        return f"CUST-{next_num:03d}"
 
     async def get_customer(self, customer_id: UUID) -> Optional[CustomerResponse]:
         """
