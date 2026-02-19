@@ -87,99 +87,95 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>
-          {initialCustomerPo ? "Edit Customer PO" : "Create New Customer PO"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Internal Reference */}
-            <FormField
-              control={form.control}
-              name="internal_ref"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Internal Reference *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., CPO-2024-001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* PO Number */}
-            <FormField
-              control={form.control}
-              name="po_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>PO Number *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Customer PO number..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Customer */}
-            <FormField
-              control={form.control}
-              name="customer_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Customer *</FormLabel>
-                  <FormControl>
-                    <CustomerSelector
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Deal ID */}
-            <FormField
-              control={form.control}
-              name="deal_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deal (Optional)</FormLabel>
-                  <FormControl>
-                    <DealSelector
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Quote ID */}
-            <FormField
-              control={form.control}
-              name="quote_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Quote ID (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Link to a quote..." {...field} value={field.value ?? ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Line Items */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basic Information Section */}
             <div>
-              <FormLabel>Line Items</FormLabel>
-              <div className="space-y-4 mt-2">
+              <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="internal_ref"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Internal Reference *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., CPO-2024-001" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="po_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>PO Number *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Customer PO number..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="customer_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Customer *</FormLabel>
+                      <FormControl>
+                        <CustomerSelector
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="deal_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Deal (Optional)</FormLabel>
+                      <FormControl>
+                        <DealSelector
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="quote_id"
+                render={({ field }) => (
+                  <FormItem className="mt-6">
+                    <FormLabel>Quote (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Link to a quote..." {...field} value={field.value ?? ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Line Items Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Line Items</h3>
+              <div className="space-y-4">
                 {fields.map((field, index) => (
                   <div key={field.id} className="border rounded-lg p-4 space-y-3">
                     <div className="flex justify-between items-center">
@@ -304,85 +300,96 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
               </Button>
             </div>
 
-            {/* Total Amount */}
-            <FormField
-              control={form.control}
-              name="total_amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Total Amount *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Financial Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Financial Information</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="total_amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Amount *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Currency */}
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency</FormLabel>
-                  <FormControl>
-                    <Input placeholder="AED" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Currency</FormLabel>
+                      <FormControl>
+                        <Input placeholder="AED" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-            {/* PO Date */}
-            <FormField
-              control={form.control}
-              name="po_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>PO Date *</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Dates Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Dates</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="po_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>PO Date *</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Delivery Date */}
-            <FormField
-              control={form.control}
-              name="delivery_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Delivery Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} value={field.value ?? ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="delivery_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Delivery Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-            {/* Notes */}
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Additional notes..." {...field} value={field.value ?? ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Additional Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Additional notes..." {...field} value={field.value ?? ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Submit Button */}
             <div className="flex gap-2">

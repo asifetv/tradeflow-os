@@ -92,19 +92,13 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{initialDeal ? "Edit Deal" : "Create New Deal"}</CardTitle>
-        <CardDescription>
-          {initialDeal ? "Modify deal details" : "Add a new deal to the system"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <CardContent className="pt-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
           {/* Basic Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Basic Information</h3>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="deal_number">Deal Number*</Label>
                 <Input
@@ -167,10 +161,10 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
           </div>
 
           {/* Financial Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Financial Information</h3>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Financial Information</h3>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-6">
               <div>
                 <Label htmlFor="total_value">Total Value</Label>
                 <Input
@@ -213,13 +207,13 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
           </div>
 
           {/* Line Items */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Line Items</h3>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Line Items</h3>
 
             <div className="space-y-3">
               {fields.map((field, index) => (
                 <div key={field.id} className="p-4 border border-gray-200 rounded-lg space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div>
                       <Label>Description</Label>
                       <Input
@@ -236,7 +230,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-6">
                     <div>
                       <Label>Quantity</Label>
                       <Input
@@ -296,8 +290,9 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
             </Button>
           </div>
 
-          {/* Notes */}
+          {/* Additional Information Section */}
           <div>
+            <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
@@ -310,19 +305,19 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 justify-end">
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : initialDeal ? "Update Deal" : "Create Deal"}
+            </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
             >
               Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : initialDeal ? "Update Deal" : "Create Deal"}
             </Button>
           </div>
         </form>
