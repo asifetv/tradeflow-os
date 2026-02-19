@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useCustomers } from "@/lib/hooks/use-customers"
 import { useDeals } from "@/lib/hooks/use-deals"
 import { useQuotes } from "@/lib/hooks/use-quotes"
-import { useCustomerPos } from "@/lib/hooks/use-customer-po"
+import { useCustomerPos } from "@/lib/hooks/use-customer-pos"
 
 export default function DashboardPage() {
   const router = useRouter()
