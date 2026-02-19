@@ -41,8 +41,6 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
       customer_id: "",
       deal_id: undefined,
       quote_id: undefined,
-      title: undefined,
-      description: undefined,
       line_items: [],
       total_amount: 0,
       currency: "AED",
@@ -66,8 +64,6 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
         ...data,
         deal_id: data.deal_id || undefined,
         quote_id: data.quote_id || undefined,
-        title: data.title || undefined,
-        description: data.description || undefined,
         delivery_date: data.delivery_date || undefined,
         notes: data.notes || undefined,
       }

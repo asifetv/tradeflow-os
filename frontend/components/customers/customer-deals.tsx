@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DealListResponse } from "@/lib/types/deal"
+import { DealsListResponse } from "@/lib/types/deal"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -18,7 +18,7 @@ export function CustomerDeals({ customerId }: CustomerDealsProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["customer-deals", customerId],
     queryFn: async () => {
-      const response = await axios.get<DealListResponse>(
+      const response = await axios.get<DealsListResponse>(
         `${API_BASE_URL}/api/customers/${customerId}/deals`,
         {
           headers: {
