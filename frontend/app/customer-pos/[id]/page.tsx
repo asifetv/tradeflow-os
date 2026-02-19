@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Home } from "lucide-react"
 import Link from "next/link"
 import { useCustomerPo, useDeleteCustomerPo, useUpdateCustomerPoStatus } from "@/lib/hooks/use-customer-pos"
 import { useRouter, useParams } from "next/navigation"
@@ -53,7 +54,13 @@ export default function CustomerPoDetailPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/" className="flex-shrink-0">
+          <Button variant="ghost" size="icon" className="hover:bg-slate-100">
+            <Home className="h-5 w-5 text-slate-600" />
+          </Button>
+        </Link>
+        <div className="flex justify-between items-center flex-1">
         <h1 className="text-3xl font-bold">{customerPo?.po_number || "PO"}</h1>
         <div className="flex gap-2">
           {validTransitions.length > 0 && (
@@ -89,10 +96,13 @@ export default function CustomerPoDetailPage() {
               <div className="flex gap-2">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-              </div>
+                      </div>
+      </div>
             </AlertDialogContent>
           </AlertDialog>
-        </div>
+                </div>
+      </div>
+              </div>
       </div>
 
       {customerPo && (
@@ -105,32 +115,39 @@ export default function CustomerPoDetailPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <p className="text-sm">{customerPo.status}</p>
-              </div>
+                      </div>
+      </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
                 <p className="text-sm font-semibold">{customerPo.currency} {customerPo.total_amount.toFixed(2)}</p>
-              </div>
+                      </div>
+      </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">PO Date</p>
                 <p className="text-sm">{customerPo.po_date}</p>
-              </div>
+                      </div>
+      </div>
               {customerPo.delivery_date && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Delivery Date</p>
                   <p className="text-sm">{customerPo.delivery_date}</p>
-                </div>
+                        </div>
+      </div>
               )}
-            </div>
+                    </div>
+      </div>
 
             {customerPo.notes && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Notes</p>
                 <p className="text-sm">{customerPo.notes}</p>
-              </div>
+                      </div>
+      </div>
             )}
           </CardContent>
         </Card>
       )}
-    </div>
+            </div>
+      </div>
   )
 }

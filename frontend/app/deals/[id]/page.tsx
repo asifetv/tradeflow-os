@@ -11,6 +11,7 @@ import { ArrowLeft, Edit, Trash2, Download, MoreVertical } from "lucide-react"
 
 import { Deal, DealStatus } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
+import { Home } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from "@/components/deals/status-badge"
@@ -71,7 +72,8 @@ export default function DealDetailPage() {
   }
 
   if (isDealLoading) {
-    return <div className="flex items-center justify-center p-8">Loading...</div>
+    return <div className="flex items-center justify-center p-8">Loading...        </div>
+      </div>
   }
 
   if (!deal) {
@@ -82,7 +84,9 @@ export default function DealDetailPage() {
           <Link href="/deals">
             <Button variant="outline">Back to Deals</Button>
           </Link>
-        </div>
+                </div>
+      </div>
+              </div>
       </div>
     )
   }
@@ -107,9 +111,12 @@ export default function DealDetailPage() {
               <p className="text-gray-600 text-sm">
                 {deal.customer_rfq_ref && `RFQ: ${deal.customer_rfq_ref}`}
               </p>
-            </div>
-          </div>
-        </div>
+                    </div>
+      </div>
+                  </div>
+      </div>
+                </div>
+      </div>
 
         <div className="flex gap-2">
           <Link href={`/deals/${dealId}/edit`}>
@@ -146,10 +153,13 @@ export default function DealDetailPage() {
                 >
                   Delete
                 </Button>
-              </div>
+                      </div>
+      </div>
             </DialogContent>
           </Dialog>
-        </div>
+                </div>
+      </div>
+              </div>
       </div>
 
       {/* Status Management */}
@@ -162,7 +172,8 @@ export default function DealDetailPage() {
                 <p className="text-xs text-gray-500 mt-1">
                   {validTransitions.length} valid transition{validTransitions.length !== 1 ? "s" : ""}
                 </p>
-              </div>
+                      </div>
+      </div>
               <div className="flex gap-2">
                 {validTransitions.map((status) => (
                   <Button
@@ -174,8 +185,10 @@ export default function DealDetailPage() {
                     {status.replace(/_/g, " ").toUpperCase()}
                   </Button>
                 ))}
-              </div>
-            </div>
+                      </div>
+      </div>
+                    </div>
+      </div>
           </CardContent>
         </Card>
       )}
@@ -212,7 +225,8 @@ export default function DealDetailPage() {
                   <p className="text-sm font-medium">
                     {format(new Date(deal.created_at), "MMM d, yyyy HH:mm")}
                   </p>
-                </div>
+                        </div>
+      </div>
               </CardContent>
             </Card>
 
@@ -227,7 +241,8 @@ export default function DealDetailPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+                  </div>
+      </div>
 
           {/* Financial Summary */}
           <div className="grid grid-cols-4 gap-4">
@@ -278,7 +293,8 @@ export default function DealDetailPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+                  </div>
+      </div>
 
           {deal.notes && (
             <Card>
@@ -310,25 +326,33 @@ export default function DealDetailPage() {
                         <div>
                           <p className="text-xs text-gray-500">Description</p>
                           <p className="font-semibold">{item.description}</p>
-                        </div>
+                                </div>
+      </div>
                         <div>
                           <p className="text-xs text-gray-500">Material Spec</p>
                           <p className="font-semibold">{item.material_spec}</p>
-                        </div>
-                      </div>
+                                </div>
+      </div>
+                              </div>
+      </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div>
                           <p className="text-xs text-gray-500">Quantity</p>
                           <p className="text-sm">{item.quantity} {item.unit}</p>
-                        </div>
+                                </div>
+      </div>
                         <div>
                           <p className="text-xs text-gray-500">Required Delivery</p>
                           <p className="text-sm">{item.required_delivery_date}</p>
-                        </div>
-                      </div>
-                    </div>
+                                </div>
+      </div>
+                              </div>
+      </div>
+                            </div>
+      </div>
                   ))}
-                </div>
+                        </div>
+      </div>
               </CardContent>
             </Card>
           )}
@@ -346,6 +370,7 @@ export default function DealDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+            </div>
+      </div>
   )
 }

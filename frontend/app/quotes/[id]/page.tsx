@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Home } from "lucide-react"
 import Link from "next/link"
 import { useQuote, useDeleteQuote, useUpdateQuoteStatus } from "@/lib/hooks/use-quotes"
 import { useRouter, useParams } from "next/navigation"
@@ -54,7 +55,13 @@ export default function QuoteDetailPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/" className="flex-shrink-0">
+          <Button variant="ghost" size="icon" className="hover:bg-slate-100">
+            <Home className="h-5 w-5 text-slate-600" />
+          </Button>
+        </Link>
+        <div className="flex justify-between items-center flex-1">
         <h1 className="text-3xl font-bold">{quote?.title || "Quote"}</h1>
         <div className="flex gap-2">
           {validTransitions.length > 0 && (
@@ -90,13 +97,17 @@ export default function QuoteDetailPage() {
               <div className="flex gap-2">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-              </div>
+                      </div>
+      </div>
             </AlertDialogContent>
           </AlertDialog>
-        </div>
+                </div>
+      </div>
+              </div>
       </div>
 
       <QuoteCard quoteId={id} />
-    </div>
+            </div>
+      </div>
   )
 }

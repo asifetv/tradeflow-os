@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { CustomerTable } from "@/components/customers/customer-table"
-import { Plus } from "lucide-react"
+import { Plus, Home } from "lucide-react"
 
 export default function CustomersPage() {
   return (
@@ -10,7 +10,12 @@ export default function CustomersPage() {
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
-            <div>
+            <Link href="/" className="mr-4">
+              <Button variant="ghost" size="icon" className="hover:bg-slate-100">
+                <Home className="h-5 w-5 text-slate-600" />
+              </Button>
+            </Link>
+            <div className="flex-1">
               <h1 className="text-4xl font-bold font-heading bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                 Customers
               </h1>
