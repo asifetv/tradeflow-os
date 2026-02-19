@@ -14,6 +14,8 @@ class LineItemCreate(BaseModel):
     material_spec: str
     quantity: float
     unit: str
+    unit_price: Optional[float] = None
+    unit_total: Optional[float] = None
     required_delivery_date: str
 
 
@@ -23,6 +25,8 @@ class LineItemResponse(BaseModel):
     material_spec: str
     quantity: float
     unit: str
+    unit_price: Optional[float] = None
+    unit_total: Optional[float] = None
     required_delivery_date: str
 
 
