@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useCustomerPo, useDeleteCustomerPo, useUpdateCustomerPoStatus } from "@/lib/hooks/use-customer-pos"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,12 +24,6 @@ import {
 import { CustomerPOStatus } from "@/lib/types/customer-po"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface CustomerPoDetailPageProps {
-  params: {
-    id: string
-  }
-}
-
 const VALID_TRANSITIONS: Record<CustomerPOStatus, CustomerPOStatus[]> = {
   [CustomerPOStatus.RECEIVED]: [CustomerPOStatus.ACKNOWLEDGED, CustomerPOStatus.CANCELLED],
   [CustomerPOStatus.ACKNOWLEDGED]: [CustomerPOStatus.IN_PROGRESS, CustomerPOStatus.CANCELLED],
@@ -38,14 +32,16 @@ const VALID_TRANSITIONS: Record<CustomerPOStatus, CustomerPOStatus[]> = {
   [CustomerPOStatus.CANCELLED]: [],
 }
 
-export default function CustomerPoDetailPage({ params }: CustomerPoDetailPageProps) {
+export default function CustomerPoDetailPage() {
+  const params = useParams()
+  const id = params.id as string
   const router = useRouter()
-  const { data: customerPo } = useCustomerPo(params.id)
+  const { data: customerPo } = useCustomerPo(id)
   const deleteCustomerPo = useDeleteCustomerPo()
-  const updateCustomerPoStatus = useUpdateCustomerPoStatus(params.id)
+  const updateCustomerPoStatus = useUpdateCustomerPoStatus(id)
 
   const handleDelete = async () => {
-    await deleteCustomerPo.mutateAsync(params.id)
+    await deleteCustomerPo.mutateAsync(id)
     router.push("/customer-pos")
   }
 
@@ -75,7 +71,7 @@ export default function CustomerPoDetailPage({ params }: CustomerPoDetailPagePro
             </Select>
           )}
 
-          <Link href={`/customer-pos/${params.id}/edit`}>
+          <Link href={`/customer-pos/${id}/edit`}>
             <Button>Edit</Button>
           </Link>
 

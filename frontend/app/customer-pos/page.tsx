@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { CustomerPosTable } from "@/components/customer-pos/customer-pos-table"
 import Link from "next/link"
 
 export default function CustomerPosPage() {
@@ -11,9 +12,7 @@ export default function CustomerPosPage() {
         </Link>
       </div>
 
-      <div className="text-muted-foreground">
-        <p>Customer POs management page. Load POs dynamically below.</p>
-      </div>
+      <CustomerPosTable />
     </div>
   )
 }

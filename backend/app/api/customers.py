@@ -11,7 +11,13 @@ from app.schemas.customer import (
     CustomerResponse,
     CustomerUpdate,
 )
+from app.schemas.deal import DealListResponse
+from app.schemas.quote import QuotesListResponse
+from app.schemas.customer_po import CustomerPOsListResponse
 from app.services.customer import CustomerService
+from app.services.deal import DealService
+from app.services.quote import QuoteService
+from app.services.customer_po import CustomerPOService
 
 router = APIRouter(
     prefix="/api/customers",
@@ -108,3 +114,51 @@ async def delete_customer(
         )
 
     await db.commit()
+
+
+@router.get("/{customer_id}/deals", response_model=DealListResponse)
+async def get_customer_deals(
+    customer_id: UUID,
+    db: SessionDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+):
+    """Get all deals linked to a customer."""
+    service = DealService(db)
+    return await service.list_deals(
+        skip=skip,
+        limit=limit,
+        customer_id=customer_id,
+    )
+
+
+@router.get("/{customer_id}/quotes", response_model=QuotesListResponse)
+async def get_customer_quotes(
+    customer_id: UUID,
+    db: SessionDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+):
+    """Get all quotes linked to a customer."""
+    service = QuoteService(db)
+    return await service.list_quotes(
+        skip=skip,
+        limit=limit,
+        customer_id=customer_id,
+    )
+
+
+@router.get("/{customer_id}/pos", response_model=CustomerPOsListResponse)
+async def get_customer_pos(
+    customer_id: UUID,
+    db: SessionDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+):
+    """Get all customer POs linked to a customer."""
+    service = CustomerPOService(db)
+    return await service.list_customer_pos(
+        skip=skip,
+        limit=limit,
+        customer_id=customer_id,
+    )

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { QuotesTable } from "@/components/quotes/quotes-table"
 import Link from "next/link"
 
 export default function QuotesPage() {
@@ -11,9 +12,7 @@ export default function QuotesPage() {
         </Link>
       </div>
 
-      <div className="text-muted-foreground">
-        <p>Quotes management page. Load quotes dynamically below.</p>
-      </div>
+      <QuotesTable />
     </div>
   )
 }

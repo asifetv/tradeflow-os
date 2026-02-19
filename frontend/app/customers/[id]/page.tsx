@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { CustomerCard } from "@/components/customers/customer-card"
+import { CustomerDeals } from "@/components/customers/customer-deals"
+import { CustomerQuotes } from "@/components/customers/customer-quotes"
+import { CustomerPOs } from "@/components/customers/customer-pos"
 import { useCustomer, useDeleteCustomer } from "@/lib/hooks/use-customers"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,19 +20,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-interface CustomerDetailPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function CustomerDetailPage({ params }: CustomerDetailPageProps) {
+export default function CustomerDetailPage() {
+  const params = useParams()
+  const id = params.id as string
   const router = useRouter()
-  const { data: customer } = useCustomer(params.id)
+  const { data: customer } = useCustomer(id)
   const deleteCustomer = useDeleteCustomer()
 
   const handleDelete = async () => {
-    await deleteCustomer.mutateAsync(params.id)
+    await deleteCustomer.mutateAsync(id)
     router.push("/customers")
   }
 
@@ -38,7 +37,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{customer?.company_name || "Customer"}</h1>
         <div className="flex gap-2">
-          <Link href={`/customers/${params.id}/edit`}>
+          <Link href={`/customers/${id}/edit`}>
             <Button>Edit</Button>
           </Link>
           <AlertDialog>
@@ -70,19 +69,19 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
-          <CustomerCard customerId={params.id} />
+          <CustomerCard customerId={id} />
         </TabsContent>
 
         <TabsContent value="deals" className="mt-6">
-          <div className="text-muted-foreground">Deals linked to this customer will appear here.</div>
+          <CustomerDeals customerId={id} />
         </TabsContent>
 
         <TabsContent value="quotes" className="mt-6">
-          <div className="text-muted-foreground">Quotes linked to this customer will appear here.</div>
+          <CustomerQuotes customerId={id} />
         </TabsContent>
 
         <TabsContent value="pos" className="mt-6">
-          <div className="text-muted-foreground">Customer POs linked to this customer will appear here.</div>
+          <CustomerPOs customerId={id} />
         </TabsContent>
       </Tabs>
     </div>

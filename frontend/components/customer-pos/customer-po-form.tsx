@@ -22,6 +22,7 @@ import { CustomerPO } from "@/lib/types/customer-po"
 import { customerPoFormSchema, type CustomerPoFormValues } from "@/lib/validations/customer-po"
 import { useCreateCustomerPo, useUpdateCustomerPo } from "@/lib/hooks/use-customer-pos"
 import { CustomerSelector } from "@/components/customers/customer-selector"
+import { DealSelector } from "@/components/deals/deal-selector"
 
 interface CustomerPoFormProps {
   initialCustomerPo?: CustomerPO
@@ -38,10 +39,16 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
       internal_ref: "",
       po_number: "",
       customer_id: "",
+      deal_id: undefined,
+      quote_id: undefined,
+      title: undefined,
+      description: undefined,
       line_items: [],
       total_amount: 0,
       currency: "AED",
       po_date: new Date().toISOString().split("T")[0],
+      delivery_date: undefined,
+      notes: undefined,
     },
   })
 
@@ -54,15 +61,31 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
 
   async function onSubmit(data: CustomerPoFormValues) {
     try {
+      // Transform form data to match backend schema
+      const payload = {
+        ...data,
+        deal_id: data.deal_id || undefined,
+        quote_id: data.quote_id || undefined,
+        title: data.title || undefined,
+        description: data.description || undefined,
+        delivery_date: data.delivery_date || undefined,
+        notes: data.notes || undefined,
+      }
+
+      console.log("CustomerPO form payload:", JSON.stringify(payload, null, 2))
+
       if (initialCustomerPo) {
-        await updateMutation.mutateAsync(data)
+        await updateMutation.mutateAsync(payload as any)
         router.push(`/customer-pos/${initialCustomerPo.id}`)
       } else {
-        const newCustomerPo = await createMutation.mutateAsync(data)
+        const newCustomerPo = await createMutation.mutateAsync(payload as any)
         router.push(`/customer-pos/${newCustomerPo.id}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting form:", error)
+      if (error.response?.data) {
+        console.error("Backend validation error details:", error.response.data)
+      }
     }
   }
 
@@ -130,9 +153,12 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
               name="deal_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deal ID (Optional)</FormLabel>
+                  <FormLabel>Deal (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Link to a deal..." {...field} value={field.value ?? ""} />
+                    <DealSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,8 +223,8 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                               <Input
                                 type="number"
                                 placeholder="0"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -230,8 +256,8 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                               <Input
                                 type="number"
                                 placeholder="0.00"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -250,8 +276,8 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                             <Input
                               type="number"
                               placeholder="0.00"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -293,8 +319,8 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                     <Input
                       type="number"
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                     />
                   </FormControl>
                   <FormMessage />

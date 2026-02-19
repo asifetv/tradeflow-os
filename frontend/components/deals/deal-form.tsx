@@ -49,9 +49,15 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
         }
       : {
           deal_number: "",
+          customer_id: undefined,
+          customer_rfq_ref: undefined,
           description: "",
           currency: "AED",
           line_items: [],
+          total_value: undefined,
+          total_cost: undefined,
+          estimated_margin_pct: undefined,
+          notes: undefined,
         },
   })
 
@@ -69,6 +75,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
         onSubmitCallback(data)
       } else if (initialDeal) {
         await updateDealMutation.mutateAsync(data)
+        router.push(`/deals/${initialDeal.id}`)
       } else {
         const newDeal = await createDealMutation.mutateAsync(data)
         router.push(`/deals/${newDeal.id}`)

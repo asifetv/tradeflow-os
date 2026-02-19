@@ -2,15 +2,12 @@
 
 import { QuoteForm } from "@/components/quotes/quote-form"
 import { useQuote } from "@/lib/hooks/use-quotes"
+import { useParams } from "next/navigation"
 
-interface EditQuotePageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditQuotePage({ params }: EditQuotePageProps) {
-  const { data: quote } = useQuote(params.id)
+export default function EditQuotePage() {
+  const params = useParams()
+  const id = params.id as string
+  const { data: quote } = useQuote(id)
 
   return (
     <div className="container mx-auto py-8">

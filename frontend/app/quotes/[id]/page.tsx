@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useQuote, useDeleteQuote, useUpdateQuoteStatus } from "@/lib/hooks/use-quotes"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { QuoteCard } from "@/components/quotes/quote-card"
 import {
   AlertDialog,
@@ -24,12 +24,6 @@ import {
 } from "@/components/ui/select"
 import { QuoteStatus } from "@/lib/types/quote"
 
-interface QuoteDetailPageProps {
-  params: {
-    id: string
-  }
-}
-
 const VALID_TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
   [QuoteStatus.DRAFT]: [QuoteStatus.SENT, QuoteStatus.EXPIRED],
   [QuoteStatus.SENT]: [QuoteStatus.ACCEPTED, QuoteStatus.REJECTED, QuoteStatus.REVISED, QuoteStatus.EXPIRED],
@@ -39,14 +33,16 @@ const VALID_TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
   [QuoteStatus.REVISED]: [QuoteStatus.SENT],
 }
 
-export default function QuoteDetailPage({ params }: QuoteDetailPageProps) {
+export default function QuoteDetailPage() {
+  const params = useParams()
+  const id = params.id as string
   const router = useRouter()
-  const { data: quote } = useQuote(params.id)
+  const { data: quote } = useQuote(id)
   const deleteQuote = useDeleteQuote()
-  const updateQuoteStatus = useUpdateQuoteStatus(params.id)
+  const updateQuoteStatus = useUpdateQuoteStatus(id)
 
   const handleDelete = async () => {
-    await deleteQuote.mutateAsync(params.id)
+    await deleteQuote.mutateAsync(id)
     router.push("/quotes")
   }
 
@@ -76,7 +72,7 @@ export default function QuoteDetailPage({ params }: QuoteDetailPageProps) {
             </Select>
           )}
 
-          <Link href={`/quotes/${params.id}/edit`}>
+          <Link href={`/quotes/${id}/edit`}>
             <Button>Edit</Button>
           </Link>
 
@@ -100,7 +96,7 @@ export default function QuoteDetailPage({ params }: QuoteDetailPageProps) {
         </div>
       </div>
 
-      <QuoteCard quoteId={params.id} />
+      <QuoteCard quoteId={id} />
     </div>
   )
 }

@@ -2,15 +2,12 @@
 
 import { CustomerForm } from "@/components/customers/customer-form"
 import { useCustomer } from "@/lib/hooks/use-customers"
+import { useParams } from "next/navigation"
 
-interface EditCustomerPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditCustomerPage({ params }: EditCustomerPageProps) {
-  const { data: customer } = useCustomer(params.id)
+export default function EditCustomerPage() {
+  const params = useParams()
+  const id = params.id as string
+  const { data: customer } = useCustomer(id)
 
   return (
     <div className="container mx-auto py-8">

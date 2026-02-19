@@ -2,15 +2,12 @@
 
 import { CustomerPoForm } from "@/components/customer-pos/customer-po-form"
 import { useCustomerPo } from "@/lib/hooks/use-customer-pos"
+import { useParams } from "next/navigation"
 
-interface EditCustomerPoPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditCustomerPoPage({ params }: EditCustomerPoPageProps) {
-  const { data: customerPo } = useCustomerPo(params.id)
+export default function EditCustomerPoPage() {
+  const params = useParams()
+  const id = params.id as string
+  const { data: customerPo } = useCustomerPo(id)
 
   return (
     <div className="container mx-auto py-8">

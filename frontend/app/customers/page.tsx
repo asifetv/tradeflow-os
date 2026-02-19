@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useCustomers } from "@/lib/hooks/use-customers"
+import { CustomerTable } from "@/components/customers/customer-table"
 
 export default function CustomersPage() {
   return (
@@ -12,9 +12,7 @@ export default function CustomersPage() {
         </Link>
       </div>
 
-      <div className="text-muted-foreground">
-        <p>Customers management page. Load customers dynamically below.</p>
-      </div>
+      <CustomerTable />
     </div>
   )
 }

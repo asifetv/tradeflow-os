@@ -22,6 +22,7 @@ import { Quote } from "@/lib/types/quote"
 import { quoteFormSchema, type QuoteFormValues } from "@/lib/validations/quote"
 import { useCreateQuote, useUpdateQuote } from "@/lib/hooks/use-quotes"
 import { CustomerSelector } from "@/components/customers/customer-selector"
+import { DealSelector } from "@/components/deals/deal-selector"
 
 interface QuoteFormProps {
   initialQuote?: Quote
@@ -37,11 +38,18 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
     defaultValues: initialQuote || {
       quote_number: "",
       customer_id: "",
+      deal_id: undefined,
       title: "",
+      description: undefined,
       line_items: [],
       total_amount: 0,
       currency: "AED",
+      payment_terms: undefined,
+      delivery_terms: undefined,
       validity_days: 30,
+      issue_date: undefined,
+      expiry_date: undefined,
+      notes: undefined,
     },
   })
 
@@ -54,15 +62,64 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
 
   async function onSubmit(data: QuoteFormValues) {
     try {
+      // For updates, only send fields that were explicitly changed
+      // For creates, send all fields with defaults
+      let payload: any
+
       if (initialQuote) {
-        await updateMutation.mutateAsync(data)
+        // Update: use model_dump(exclude_unset=True) pattern
+        // Only include fields that differ from initial values
+        payload = {
+          customer_id: data.customer_id !== initialQuote.customer_id ? data.customer_id : undefined,
+          deal_id: data.deal_id !== (initialQuote.deal_id || undefined) ? data.deal_id : undefined,
+          quote_number: data.quote_number !== initialQuote.quote_number ? data.quote_number : undefined,
+          title: data.title !== initialQuote.title ? data.title : undefined,
+          description: data.description !== (initialQuote.description || undefined) ? data.description : undefined,
+          line_items: JSON.stringify(data.line_items) !== JSON.stringify(initialQuote.line_items) ? data.line_items : undefined,
+          total_amount: data.total_amount !== initialQuote.total_amount ? data.total_amount : undefined,
+          currency: data.currency !== initialQuote.currency ? data.currency : undefined,
+          payment_terms: data.payment_terms !== (initialQuote.payment_terms || undefined) ? data.payment_terms : undefined,
+          delivery_terms: data.delivery_terms !== (initialQuote.delivery_terms || undefined) ? data.delivery_terms : undefined,
+          validity_days: data.validity_days !== initialQuote.validity_days ? data.validity_days : undefined,
+          issue_date: data.issue_date !== (initialQuote.issue_date || undefined) ? data.issue_date : undefined,
+          expiry_date: data.expiry_date !== (initialQuote.expiry_date || undefined) ? data.expiry_date : undefined,
+          notes: data.notes !== (initialQuote.notes || undefined) ? data.notes : undefined,
+        }
+
+        // Remove undefined fields
+        Object.keys(payload).forEach((key) => {
+          if (payload[key] === undefined) {
+            delete payload[key]
+          }
+        })
+      } else {
+        // Create: send all data with proper formatting
+        payload = {
+          ...data,
+          deal_id: data.deal_id || undefined,
+          description: data.description || undefined,
+          payment_terms: data.payment_terms || undefined,
+          delivery_terms: data.delivery_terms || undefined,
+          issue_date: data.issue_date || undefined,
+          expiry_date: data.expiry_date || undefined,
+          notes: data.notes || undefined,
+        }
+      }
+
+      console.log("Quote form payload:", JSON.stringify(payload, null, 2))
+
+      if (initialQuote) {
+        await updateMutation.mutateAsync(payload as any)
         router.push(`/quotes/${initialQuote.id}`)
       } else {
-        const newQuote = await createMutation.mutateAsync(data)
+        const newQuote = await createMutation.mutateAsync(payload as any)
         router.push(`/quotes/${newQuote.id}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting form:", error)
+      if (error.response?.data) {
+        console.error("Backend validation error details:", error.response.data)
+      }
     }
   }
 
@@ -115,9 +172,12 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
               name="deal_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deal ID (Optional)</FormLabel>
+                  <FormLabel>Deal (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Link to a deal..." {...field} value={field.value ?? ""} />
+                    <DealSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -211,8 +271,8 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                               <Input
                                 type="number"
                                 placeholder="0"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -244,8 +304,8 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                               <Input
                                 type="number"
                                 placeholder="0.00"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -264,8 +324,8 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                             <Input
                               type="number"
                               placeholder="0.00"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -307,8 +367,8 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                     <Input
                       type="number"
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -357,8 +417,8 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                     <Input
                       type="number"
                       placeholder="30"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 30)}
                     />
                   </FormControl>
                   <FormMessage />

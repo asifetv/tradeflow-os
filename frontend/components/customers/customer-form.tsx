@@ -56,14 +56,27 @@ export function CustomerForm({ initialCustomer }: CustomerFormProps) {
   const createMutation = useCreateCustomer()
   const updateMutation = useUpdateCustomer(initialCustomer?.id || "")
 
+  // Normalize null values to undefined for Zod validation
+  const normalizedDefaults = initialCustomer ? {
+    ...initialCustomer,
+    notes: initialCustomer.notes || undefined,
+    city: initialCustomer.city || undefined,
+    address: initialCustomer.address || undefined,
+    primary_contact_name: initialCustomer.primary_contact_name || undefined,
+    primary_contact_email: initialCustomer.primary_contact_email || undefined,
+    primary_contact_phone: initialCustomer.primary_contact_phone || undefined,
+    payment_terms: initialCustomer.payment_terms || undefined,
+    credit_limit: initialCustomer.credit_limit || undefined,
+  } : {
+    customer_code: "",
+    company_name: "",
+    country: "",
+    is_active: true,
+  }
+
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
-    defaultValues: initialCustomer || {
-      customer_code: "",
-      company_name: "",
-      country: "",
-      is_active: true,
-    },
+    defaultValues: normalizedDefaults,
   })
 
   const isLoading = createMutation.isPending || updateMutation.isPending
@@ -71,10 +84,10 @@ export function CustomerForm({ initialCustomer }: CustomerFormProps) {
   async function onSubmit(data: CustomerFormValues) {
     try {
       if (initialCustomer) {
-        await updateMutation.mutateAsync(data)
+        await updateMutation.mutateAsync(data as any)
         router.push(`/customers/${initialCustomer.id}`)
       } else {
-        const newCustomer = await createMutation.mutateAsync(data)
+        const newCustomer = await createMutation.mutateAsync(data as any)
         router.push(`/customers/${newCustomer.id}`)
       }
     } catch (error) {
