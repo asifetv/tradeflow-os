@@ -35,7 +35,6 @@ const DEFAULT_VISIBLE_STATUSES = [
 
 export default function DealsPage() {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban")
-  const [status, setStatus] = useState<DealStatus | undefined>()
   const [page, setPage] = useState(0)
   const [visibleStatuses, setVisibleStatuses] = useState<DealStatus[]>(DEFAULT_VISIBLE_STATUSES)
   const limit = 50
@@ -58,22 +57,7 @@ export default function DealsPage() {
     localStorage.setItem("dealStageVisibility", JSON.stringify(statuses))
   }
 
-  const { data, isLoading } = useDeals(page * limit, limit, status)
-
-  const statuses: DealStatus[] = [
-    DealStatus.RFQ_RECEIVED,
-    DealStatus.SOURCING,
-    DealStatus.QUOTED,
-    DealStatus.PO_RECEIVED,
-    DealStatus.ORDERED,
-    DealStatus.IN_PRODUCTION,
-    DealStatus.SHIPPED,
-    DealStatus.DELIVERED,
-    DealStatus.INVOICED,
-    DealStatus.PAID,
-    DealStatus.CLOSED,
-    DealStatus.CANCELLED,
-  ]
+  const { data, isLoading } = useDeals(page * limit, limit)
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,36 +119,6 @@ export default function DealsPage() {
                   onVisibilityChange={handleVisibilityChange}
                 />
               )}
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <span className="text-sm font-medium block mb-3">Filter by status:</span>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={status === undefined ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setStatus(undefined)
-                    setPage(0)
-                  }}
-                >
-                  All
-                </Button>
-                {statuses.map((s) => (
-                  <Button
-                    key={s}
-                    variant={status === s ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      setStatus(s)
-                      setPage(0)
-                    }}
-                  >
-                    {s.replace(/_/g, " ").toUpperCase()}
-                  </Button>
-                ))}
-              </div>
             </div>
           </CardContent>
         </Card>
