@@ -198,7 +198,16 @@ class CustomerPOService:
         update_dict = update_data.model_dump(exclude_unset=True)
         for field, value in update_dict.items():
             if field == "line_items" and value is not None:
-                setattr(customer_po, field, [item.model_dump() for item in value])
+                # Handle both Pydantic models and plain dicts
+                line_items_list = []
+                for item in value:
+                    if hasattr(item, 'model_dump'):
+                        line_items_list.append(item.model_dump())
+                    elif isinstance(item, dict):
+                        line_items_list.append(item)
+                    else:
+                        line_items_list.append(item)
+                setattr(customer_po, field, line_items_list)
             else:
                 setattr(customer_po, field, value)
 

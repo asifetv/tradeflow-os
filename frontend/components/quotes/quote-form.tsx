@@ -62,48 +62,17 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
 
   async function onSubmit(data: QuoteFormValues) {
     try {
-      // For updates, only send fields that were explicitly changed
-      // For creates, send all fields with defaults
-      let payload: any
-
-      if (initialQuote) {
-        // Update: use model_dump(exclude_unset=True) pattern
-        // Only include fields that differ from initial values
-        payload = {
-          customer_id: data.customer_id !== initialQuote.customer_id ? data.customer_id : undefined,
-          deal_id: data.deal_id !== (initialQuote.deal_id || undefined) ? data.deal_id : undefined,
-          quote_number: data.quote_number !== initialQuote.quote_number ? data.quote_number : undefined,
-          title: data.title !== initialQuote.title ? data.title : undefined,
-          description: data.description !== (initialQuote.description || undefined) ? data.description : undefined,
-          line_items: JSON.stringify(data.line_items) !== JSON.stringify(initialQuote.line_items) ? data.line_items : undefined,
-          total_amount: data.total_amount !== initialQuote.total_amount ? data.total_amount : undefined,
-          currency: data.currency !== initialQuote.currency ? data.currency : undefined,
-          payment_terms: data.payment_terms !== (initialQuote.payment_terms || undefined) ? data.payment_terms : undefined,
-          delivery_terms: data.delivery_terms !== (initialQuote.delivery_terms || undefined) ? data.delivery_terms : undefined,
-          validity_days: data.validity_days !== initialQuote.validity_days ? data.validity_days : undefined,
-          issue_date: data.issue_date !== (initialQuote.issue_date || undefined) ? data.issue_date : undefined,
-          expiry_date: data.expiry_date !== (initialQuote.expiry_date || undefined) ? data.expiry_date : undefined,
-          notes: data.notes !== (initialQuote.notes || undefined) ? data.notes : undefined,
-        }
-
-        // Remove undefined fields
-        Object.keys(payload).forEach((key) => {
-          if (payload[key] === undefined) {
-            delete payload[key]
-          }
-        })
-      } else {
-        // Create: send all data with proper formatting
-        payload = {
-          ...data,
-          deal_id: data.deal_id || undefined,
-          description: data.description || undefined,
-          payment_terms: data.payment_terms || undefined,
-          delivery_terms: data.delivery_terms || undefined,
-          issue_date: data.issue_date || undefined,
-          expiry_date: data.expiry_date || undefined,
-          notes: data.notes || undefined,
-        }
+      // Send data directly - backend will handle partial updates
+      const payload = {
+        ...data,
+        // Convert empty strings to undefined for optional fields
+        deal_id: data.deal_id || undefined,
+        description: data.description || undefined,
+        payment_terms: data.payment_terms || undefined,
+        delivery_terms: data.delivery_terms || undefined,
+        issue_date: data.issue_date || undefined,
+        expiry_date: data.expiry_date || undefined,
+        notes: data.notes || undefined,
       }
 
       console.log("Quote form payload:", JSON.stringify(payload, null, 2))
