@@ -60,8 +60,10 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ deals, isLoading, visibleStatuses }: KanbanBoardProps) {
-  // Use all statuses by default if not specified
-  const statusesToShow = visibleStatuses || STATUS_ORDER
+  // Filter STATUS_ORDER to only include visible statuses, maintaining original order
+  const statusesToShow = visibleStatuses
+    ? STATUS_ORDER.filter((status) => visibleStatuses.includes(status))
+    : STATUS_ORDER
   // Group deals by status
   const dealsByStatus: Record<DealStatus, Deal[]> = {} as any
 
