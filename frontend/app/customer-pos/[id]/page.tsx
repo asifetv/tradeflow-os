@@ -1,4 +1,5 @@
 "use client"
+import { TopNav } from "@/components/navigation/top-nav"
 
 import { Button } from "@/components/ui/button"
 import { Home } from "lucide-react"

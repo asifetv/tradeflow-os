@@ -3,6 +3,7 @@
  */
 
 "use client"
+import { TopNav } from "@/components/navigation/top-nav"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -11,7 +12,6 @@ import { ArrowLeft, Edit, Trash2, Download, MoreVertical } from "lucide-react"
 
 import { Deal, DealStatus } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
-import { Home } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from "@/components/deals/status-badge"
@@ -78,7 +78,8 @@ export default function DealDetailPage() {
 
   if (!deal) {
     return (
-      <div className="flex items-center justify-center p-8">
+    <>
+      <TopNav />      <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Deal not found</h2>
           <Link href="/deals">
@@ -94,7 +95,8 @@ export default function DealDetailPage() {
   const validTransitions = VALID_STATUS_TRANSITIONS[deal.status] || []
 
   return (
-    <div className="space-y-6">
+    <>
+      <TopNav />    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -370,7 +372,9 @@ export default function DealDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      </Tabs>
             </div>
       </div>
+      </>
   )
 }
