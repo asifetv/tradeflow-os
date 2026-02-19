@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { KanbanBoard } from "@/components/deals/kanban-board"
 import { DealsTable } from "@/components/deals/deals-table"
+import { PipelineDashboard } from "@/components/deals/pipeline-dashboard"
 import { useDeals } from "@/lib/hooks/use-deals"
 import { TopNav } from "@/components/navigation/top-nav"
 
@@ -64,6 +65,9 @@ export default function DealsPage() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8 space-y-6">
+        {/* Pipeline Dashboard */}
+        <PipelineDashboard deals={data?.deals || []} isLoading={isLoading} />
+
         {/* Controls */}
         <Card className="bg-card border border-border shadow-sm">
           <CardContent className="pt-6 space-y-4">
