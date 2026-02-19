@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Home } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { CustomerCard } from "@/components/customers/customer-card"
@@ -10,6 +9,7 @@ import { CustomerQuotes } from "@/components/customers/customer-quotes"
 import { CustomerPOs } from "@/components/customers/customer-pos"
 import { useCustomer, useDeleteCustomer } from "@/lib/hooks/use-customers"
 import { useRouter, useParams } from "next/navigation"
+import { TopNav } from "@/components/navigation/top-nav"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,15 +34,11 @@ export default function CustomerDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/" className="flex-shrink-0">
-          <Button variant="ghost" size="icon" className="hover:bg-slate-100">
-            <Home className="h-5 w-5 text-slate-600" />
-          </Button>
-        </Link>
-        <div className="flex justify-between items-center flex-1">
-        <h1 className="text-3xl font-bold">{customer?.company_name || "Customer"}</h1>
+    <>
+      <TopNav />
+      <div className="container mx-auto py-8">
+        <div className="flex items-center gap-4 justify-between mb-6">
+          <h1 className="text-3xl font-bold">{customer?.company_name || "Customer"}</h1>
         <div className="flex gap-2">
           <Link href={`/customers/${id}/edit`}>
             <Button>Edit</Button>
@@ -61,13 +57,10 @@ export default function CustomerDetailPage() {
               <div className="flex gap-2">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                      </div>
-      </div>
+              </div>
             </AlertDialogContent>
           </AlertDialog>
-                </div>
-      </div>
-              </div>
+        </div>
       </div>
 
       <Tabs defaultValue="details">
@@ -94,7 +87,7 @@ export default function CustomerDetailPage() {
           <CustomerPOs customerId={id} />
         </TabsContent>
       </Tabs>
-            </div>
       </div>
+    </>
   )
 }

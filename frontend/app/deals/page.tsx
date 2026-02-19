@@ -6,7 +6,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { LayoutGrid, LayoutList, Plus, Home } from "lucide-react"
+import { LayoutGrid, LayoutList, Plus } from "lucide-react"
 
 import { DealStatus } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { KanbanBoard } from "@/components/deals/kanban-board"
 import { DealsTable } from "@/components/deals/deals-table"
 import { useDeals } from "@/lib/hooks/use-deals"
+import { TopNav } from "@/components/navigation/top-nav"
 
 export default function DealsPage() {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban")
@@ -40,15 +41,11 @@ export default function DealsPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TopNav />
       {/* Header */}
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
-            <Link href="/" className="mr-4">
-              <Button variant="ghost" size="icon" className="hover:bg-slate-100">
-                <Home className="h-5 w-5 text-slate-600" />
-              </Button>
-            </Link>
             <div className="flex-1">
               <h1 className="text-4xl font-bold font-heading bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">
                 Deals Pipeline
