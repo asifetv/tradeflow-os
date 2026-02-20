@@ -375,7 +375,7 @@ export const vendorProposalApi = {
    * Update a vendor proposal
    */
   update: (proposalId: string, data: VendorProposalUpdate) =>
-    axiosInstance.patch<VendorProposal>(`/api/vendor-proposals/${proposalId}`, data),
+    axiosInstance.put<VendorProposal>(`/api/vendor-proposals/${proposalId}`, data),
 
   /**
    * Delete a vendor proposal
