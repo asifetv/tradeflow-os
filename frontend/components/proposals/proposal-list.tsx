@@ -14,13 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -164,63 +157,53 @@ export function ProposalList({ dealId }: ProposalListProps) {
                     </Link>
 
                     {proposal.status === "requested" && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="ghost">
-                            ⋮
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleStatusUpdate(
-                                proposal.id,
-                                proposal.vendor?.company_name || "Vendor",
-                                "received"
-                              )
-                            }
-                            disabled={updatingIds.has(proposal.id)}
-                          >
-                            Mark as Received
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          handleStatusUpdate(
+                            proposal.id,
+                            proposal.vendor?.company_name || "Vendor",
+                            "received"
+                          )
+                        }
+                        disabled={updatingIds.has(proposal.id)}
+                      >
+                        Mark Received
+                      </Button>
                     )}
 
                     {proposal.status === "received" && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="ghost">
-                            ⋮
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleStatusUpdate(
-                                proposal.id,
-                                proposal.vendor?.company_name || "Vendor",
-                                "selected"
-                              )
-                            }
-                            disabled={updatingIds.has(proposal.id)}
-                          >
-                            ✅ Select This Vendor
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleStatusUpdate(
-                                proposal.id,
-                                proposal.vendor?.company_name || "Vendor",
-                                "rejected"
-                              )
-                            }
-                            disabled={updatingIds.has(proposal.id)}
-                          >
-                            ❌ Reject
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() =>
+                            handleStatusUpdate(
+                              proposal.id,
+                              proposal.vendor?.company_name || "Vendor",
+                              "selected"
+                            )
+                          }
+                          disabled={updatingIds.has(proposal.id)}
+                        >
+                          Select
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() =>
+                            handleStatusUpdate(
+                              proposal.id,
+                              proposal.vendor?.company_name || "Vendor",
+                              "rejected"
+                            )
+                          }
+                          disabled={updatingIds.has(proposal.id)}
+                        >
+                          Reject
+                        </Button>
+                      </>
                     )}
                   </div>
                 </TableCell>
