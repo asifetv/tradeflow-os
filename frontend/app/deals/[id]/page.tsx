@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from "@/components/deals/status-badge"
 import { ActivityTimeline } from "@/components/deals/activity-timeline"
+import { ProposalList } from "@/components/proposals/proposal-list"
 import { useDeal, useDealActivity, useDeleteDeal, useUpdateDealStatus } from "@/lib/hooks/use-deals"
 import { useCustomer } from "@/lib/hooks/use-customers"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -190,6 +191,7 @@ export default function DealDetailPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="line-items">Line Items ({deal.line_items.length})</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="proposals">Proposals</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -386,6 +388,10 @@ export default function DealDetailPage() {
               />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="proposals">
+          <ProposalList dealId={dealId} />
         </TabsContent>
       </Tabs>
     </div>
