@@ -95,18 +95,24 @@ export function useCreateVendorProposal() {
 /**
  * Mutation to update a vendor proposal
  */
-export function useUpdateVendorProposal(proposalId: string) {
+export function useUpdateVendorProposal(proposalId?: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: VendorProposalUpdate) => {
-      const response = await vendorProposalApi.update(proposalId, data)
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string
+      data: VendorProposalUpdate
+    }) => {
+      const response = await vendorProposalApi.update(id, data)
       return response.data
     },
     onSuccess: (updatedProposal) => {
       // Update cache for this proposal
       queryClient.setQueryData<VendorProposal>(
-        vendorProposalKeys.detail(proposalId),
+        vendorProposalKeys.detail(updatedProposal.id),
         updatedProposal
       )
 

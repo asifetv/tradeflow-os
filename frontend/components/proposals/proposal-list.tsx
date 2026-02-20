@@ -28,14 +28,17 @@ export function ProposalList({ dealId }: ProposalListProps) {
     limit: 100,
   })
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
+  const updateProposal = useUpdateVendorProposal()
 
   const handleStatusUpdate = async (proposalId: string, vendorName: string, newStatus: string) => {
     try {
       setUpdatingIds((prev) => new Set(prev).add(proposalId))
-      const updateMutation = useUpdateVendorProposal(proposalId)
 
-      await updateMutation.mutateAsync({
-        status: newStatus as any,
+      await updateProposal.mutateAsync({
+        id: proposalId,
+        data: {
+          status: newStatus as any,
+        },
       })
 
       toast.success(`✅ Proposal from ${vendorName} marked as ${newStatus}`)

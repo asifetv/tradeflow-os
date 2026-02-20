@@ -1,12 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useVendorProposal, useUpdateVendorProposal } from "@/lib/hooks/use-vendor-proposals"
 import { useDeal } from "@/lib/hooks/use-deals"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowLeft, CheckCircle2, XCircle, Edit2, Save, X } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { toast } from "sonner"
@@ -19,12 +23,61 @@ export default function ProposalDetailPage() {
 
   const { data: proposal, isLoading } = useVendorProposal(proposalId)
   const { data: deal } = useDeal(dealId)
-  const updateProposal = useUpdateVendorProposal(proposalId)
+  const updateProposal = useUpdateVendorProposal()
+
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editData, setEditData] = useState({
+    total_price: proposal?.total_price?.toString() || "",
+    currency: proposal?.currency || "AED",
+    lead_time_days: proposal?.lead_time_days?.toString() || "",
+    payment_terms: proposal?.payment_terms || "",
+    specs_match: proposal?.specs_match ?? false,
+    notes: proposal?.notes || "",
+  })
+
+  // Update editData when proposal loads
+  const handleEditToggle = () => {
+    if (!isEditMode && proposal) {
+      setEditData({
+        total_price: proposal.total_price?.toString() || "",
+        currency: proposal.currency || "AED",
+        lead_time_days: proposal.lead_time_days?.toString() || "",
+        payment_terms: proposal.payment_terms || "",
+        specs_match: proposal.specs_match ?? false,
+        notes: proposal.notes || "",
+      })
+    }
+    setIsEditMode(!isEditMode)
+  }
+
+  const handleSaveEdits = async () => {
+    try {
+      await updateProposal.mutateAsync({
+        id: proposalId,
+        data: {
+          total_price: editData.total_price ? parseFloat(editData.total_price) : undefined,
+          currency: editData.currency,
+          lead_time_days: editData.lead_time_days ? parseInt(editData.lead_time_days) : undefined,
+          payment_terms: editData.payment_terms || undefined,
+          specs_match: editData.specs_match,
+          notes: editData.notes || undefined,
+        },
+      })
+      toast.success("✅ Proposal updated successfully")
+      setIsEditMode(false)
+    } catch (error) {
+      toast.error("Failed to update proposal")
+      console.error(error)
+    }
+  }
 
   const handleStatusChange = async (newStatus: string) => {
     try {
       await updateProposal.mutateAsync({
-        status: newStatus as any,
+        id: proposalId,
+        data: {
+          status: newStatus as any,
+        },
       })
       toast.success(`✅ Proposal marked as ${newStatus}`)
       router.push(`/deals/${dealId}?tab=proposals`)
@@ -108,35 +161,118 @@ export default function ProposalDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Proposal Details */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Proposal Details</CardTitle>
+            <Button
+              size="sm"
+              variant={isEditMode ? "destructive" : "outline"}
+              onClick={handleEditToggle}
+              className="gap-2"
+            >
+              {isEditMode ? (
+                <>
+                  <X className="w-4 h-4" />
+                  Cancel
+                </>
+              ) : (
+                <>
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </>
+              )}
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm text-gray-600">Total Price</p>
-              <p className="text-lg font-semibold">
-                {proposal.total_price ? `${proposal.total_price} ${proposal.currency}` : "-"}
-              </p>
-            </div>
+            {!isEditMode ? (
+              <>
+                <div>
+                  <p className="text-sm text-gray-600">Total Price</p>
+                  <p className="text-lg font-semibold">
+                    {proposal.total_price ? `${proposal.total_price} ${proposal.currency}` : "-"}
+                  </p>
+                </div>
 
-            <div>
-              <p className="text-sm text-gray-600">Lead Time</p>
-              <p className="text-lg font-semibold">
-                {proposal.lead_time_days ? `${proposal.lead_time_days} days` : "-"}
-              </p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-600">Lead Time</p>
+                  <p className="text-lg font-semibold">
+                    {proposal.lead_time_days ? `${proposal.lead_time_days} days` : "-"}
+                  </p>
+                </div>
 
-            <div>
-              <p className="text-sm text-gray-600">Payment Terms</p>
-              <p className="text-lg font-semibold">{proposal.payment_terms || "-"}</p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-600">Payment Terms</p>
+                  <p className="text-lg font-semibold">{proposal.payment_terms || "-"}</p>
+                </div>
 
-            <div>
-              <p className="text-sm text-gray-600">Validity Date</p>
-              <p className="text-lg font-semibold">
-                {proposal.validity_date ? format(new Date(proposal.validity_date), "MMM dd, yyyy") : "-"}
-              </p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-600">Validity Date</p>
+                  <p className="text-lg font-semibold">
+                    {proposal.validity_date ? format(new Date(proposal.validity_date), "MMM dd, yyyy") : "-"}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Price</p>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={editData.total_price}
+                      onChange={(e) => setEditData({ ...editData, total_price: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Currency</p>
+                    <Input
+                      placeholder="AED"
+                      value={editData.currency}
+                      onChange={(e) => setEditData({ ...editData, currency: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Lead Time (days)</p>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={editData.lead_time_days}
+                    onChange={(e) => setEditData({ ...editData, lead_time_days: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Payment Terms</p>
+                  <Input
+                    placeholder="e.g., Net 45"
+                    value={editData.payment_terms}
+                    onChange={(e) => setEditData({ ...editData, payment_terms: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 p-3 border rounded bg-blue-50">
+                  <Checkbox
+                    id="specs-match"
+                    checked={editData.specs_match}
+                    onCheckedChange={(checked) => setEditData({ ...editData, specs_match: !!checked })}
+                  />
+                  <label htmlFor="specs-match" className="text-sm cursor-pointer">
+                    Specifications Match
+                  </label>
+                </div>
+
+                <Button
+                  onClick={handleSaveEdits}
+                  disabled={updateProposal.isPending}
+                  className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Save className="w-4 h-4" />
+                  {updateProposal.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -246,13 +382,22 @@ export default function ProposalDetailPage() {
         )}
 
         {/* Notes */}
-        {proposal.notes && (
+        {(proposal.notes || isEditMode) && (
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 whitespace-pre-wrap">{proposal.notes}</p>
+              {!isEditMode ? (
+                <p className="text-gray-700 whitespace-pre-wrap">{proposal.notes || "No notes"}</p>
+              ) : (
+                <Textarea
+                  placeholder="Add notes about this proposal..."
+                  className="min-h-24"
+                  value={editData.notes}
+                  onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+                />
+              )}
             </CardContent>
           </Card>
         )}
