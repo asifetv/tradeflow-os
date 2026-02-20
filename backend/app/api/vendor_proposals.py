@@ -1,6 +1,7 @@
 """API routes for vendor proposals (M3 Procurement) - includes hero feature."""
 from fastapi import APIRouter, HTTPException, Query
 from uuid import UUID
+from typing import Optional
 
 from app.deps import SessionDep, CurrentUserDep
 from app.schemas.vendor_proposal import (
@@ -98,16 +99,28 @@ async def delete_proposal(
 async def list_proposals(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    deal_id: Optional[str] = Query(None),
+    vendor_id: Optional[str] = Query(None),
     db: SessionDep = None,
     current_user: CurrentUserDep = None,
 ):
-    """List all proposals for company."""
+    """List proposals for company with optional filters by deal and vendor."""
     service = VendorProposalService(
         db,
         user_id=current_user["user_id"],
         company_id=current_user["company_id"],
     )
-    result = await service.list_proposals(skip=skip, limit=limit)
+
+    # Convert string IDs to UUID if provided
+    deal_id_uuid = UUID(deal_id) if deal_id else None
+    vendor_id_uuid = UUID(vendor_id) if vendor_id else None
+
+    result = await service.list_proposals(
+        skip=skip,
+        limit=limit,
+        deal_id=deal_id_uuid,
+        vendor_id=vendor_id_uuid,
+    )
     return result
 
 

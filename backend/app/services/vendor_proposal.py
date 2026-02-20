@@ -135,26 +135,35 @@ class VendorProposalService:
         proposal.deleted_at = func.now()
         await self.db.flush()
 
-    async def list_proposals(self, skip: int = 0, limit: int = 100) -> VendorProposalListResponse:
-        """List all proposals for company."""
+    async def list_proposals(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        deal_id: Optional[UUID] = None,
+        vendor_id: Optional[UUID] = None,
+    ) -> VendorProposalListResponse:
+        """List proposals for company with optional deal and vendor filters."""
+        # Build where conditions
+        conditions = [
+            VendorProposal.company_id == self.company_id,
+            VendorProposal.deleted_at.is_(None),
+        ]
+
+        if deal_id:
+            conditions.append(VendorProposal.deal_id == deal_id)
+        if vendor_id:
+            conditions.append(VendorProposal.vendor_id == vendor_id)
+
+        # Count total
         count_result = await self.db.execute(
-            select(func.count(VendorProposal.id)).where(
-                and_(
-                    VendorProposal.company_id == self.company_id,
-                    VendorProposal.deleted_at.is_(None)
-                )
-            )
+            select(func.count(VendorProposal.id)).where(and_(*conditions))
         )
         total = count_result.scalar() or 0
 
+        # Fetch proposals
         result = await self.db.execute(
             select(VendorProposal)
-            .where(
-                and_(
-                    VendorProposal.company_id == self.company_id,
-                    VendorProposal.deleted_at.is_(None)
-                )
-            )
+            .where(and_(*conditions))
             .options(selectinload(VendorProposal.vendor))
             .order_by(VendorProposal.created_at.desc())
             .offset(skip)
