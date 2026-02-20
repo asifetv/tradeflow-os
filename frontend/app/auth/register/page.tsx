@@ -1,0 +1,200 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+import { authApi } from "@/lib/api"
+import { useAuth } from "@/lib/hooks/use-auth"
+
+const registerSchema = z.object({
+  company_name: z.string().min(2, "Company name must be at least 2 characters"),
+  subdomain: z
+    .string()
+    .min(3, "Subdomain must be at least 3 characters")
+    .regex(/^[a-z0-9-]+$/, "Subdomain must contain only lowercase letters, numbers, and hyphens"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  full_name: z.string().min(2, "Full name must be at least 2 characters"),
+})
+
+type RegisterFormValues = z.infer<typeof registerSchema>
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const { setAuth } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      company_name: "",
+      subdomain: "",
+      email: "",
+      password: "",
+      full_name: "",
+    },
+  })
+
+  async function onSubmit(values: RegisterFormValues) {
+    setIsLoading(true)
+    try {
+      const response = await authApi.register(values)
+      const { access_token, user, company } = response.data
+
+      // Store token in localStorage and cookies
+      localStorage.setItem("access_token", access_token)
+      // Store subdomain for future logins
+      localStorage.setItem("company_subdomain", company.subdomain)
+      // Also set cookie for middleware to access
+      document.cookie = `access_token=${access_token}; path=/; max-age=86400`
+
+      // Update auth store
+      setAuth(user, company, access_token)
+
+      toast.success("Registration successful! Welcome to TradeFlow OS")
+      router.push("/")
+    } catch (error: any) {
+      console.error("Registration error:", error)
+      console.error("Response data:", error.response?.data)
+      console.error("Response status:", error.response?.status)
+
+      // Detailed error handling
+      if (error.response?.status === 400) {
+        const detail = error.response?.data?.detail
+        console.error("Detail message:", detail)
+        if (detail?.includes("Email")) {
+          toast.error("This email is already registered. Please login or use a different email.")
+        } else if (detail?.includes("Subdomain")) {
+          toast.error("This subdomain is already taken. Please choose another one.")
+        } else {
+          toast.error(detail || "Registration failed. Please try again.")
+        }
+      } else {
+        toast.error(error.response?.data?.detail || error.message || "Registration failed. Please try again.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-2">
+          <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
+          <CardDescription>Start your TradeFlow OS journey</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Company Information */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Company Information</h3>
+
+                <FormField
+                  control={form.control}
+                  name="company_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ADNOC Trading" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="subdomain"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subdomain</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center">
+                          <Input placeholder="adnoc" {...field} className="rounded-r-none" />
+                          <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-600">
+                            .tradeflow.com
+                          </span>
+                        </div>
+                      </FormControl>
+                      <FormDescription>Unique identifier for your company workspace</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Admin User Information */}
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-sm font-semibold text-gray-700">Admin Account</h3>
+
+                <FormField
+                  control={form.control}
+                  name="full_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="admin@company.com" type="email" {...field} />
+                      </FormControl>
+                      <FormDescription>Emails are globally unique - cannot be used in multiple companies</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input placeholder="••••••••" type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading} size="lg">
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </Button>
+
+              <p className="text-center text-sm text-gray-600">
+                Already have an account?{" "}
+                <a href="/auth/login" className="text-blue-600 hover:underline font-semibold">
+                  Login
+                </a>
+              </p>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

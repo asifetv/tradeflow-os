@@ -1,9 +1,10 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus, X } from "lucide-react"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Quote } from "@/lib/types/quote"
 import { quoteFormSchema, type QuoteFormValues } from "@/lib/validations/quote"
 import { useCreateQuote, useUpdateQuote } from "@/lib/hooks/use-quotes"
+import { useDeal } from "@/lib/hooks/use-deals"
 import { CustomerSelector } from "@/components/customers/customer-selector"
 import { DealSelector } from "@/components/deals/deal-selector"
 
@@ -56,6 +58,28 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
     control: form.control,
     name: "line_items",
   })
+
+  // Watch for changes to auto-populate
+  const customerId = useWatch({ control: form.control, name: "customer_id" })
+  const dealId = useWatch({ control: form.control, name: "deal_id" })
+
+  // Fetch deal details to auto-populate customer when deal is selected
+  const { data: dealData } = useDeal(dealId || "")
+
+  // Auto-populate customer when deal is selected
+  useEffect(() => {
+    if (dealId && dealData && dealData.customer_id) {
+      // Auto-populate customer from deal
+      form.setValue("customer_id", dealData.customer_id, { shouldValidate: false })
+    }
+  }, [dealId, dealData, form])
+
+  // Clear deal if customer is cleared
+  useEffect(() => {
+    if (!customerId && dealId) {
+      form.setValue("deal_id", undefined, { shouldValidate: false })
+    }
+  }, [customerId, dealId, form])
 
   const isLoading = createMutation.isPending || updateMutation.isPending
 
@@ -149,6 +173,7 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                         <DealSelector
                           value={field.value}
                           onChange={field.onChange}
+                          customerId={customerId}
                         />
                       </FormControl>
                       <FormMessage />
@@ -218,7 +243,7 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                       )}
                     />
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name={`line_items.${index}.quantity`}
@@ -230,7 +255,13 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                                 type="number"
                                 placeholder="0"
                                 value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                                onChange={(e) => {
+                                  const qty = e.target.value ? parseFloat(e.target.value) : 0
+                                  field.onChange(qty)
+                                  // Auto-calculate total
+                                  const unitPrice = form.getValues(`line_items.${index}.unit_price`) || 0
+                                  form.setValue(`line_items.${index}.total_price`, qty * unitPrice)
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -245,13 +276,15 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                           <FormItem>
                             <FormLabel>Unit *</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., MT" {...field} />
+                              <Input placeholder="e.g., MT, Barrels" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+                    </div>
 
+                    <div className="grid grid-cols-3 gap-3">
                       <FormField
                         control={form.control}
                         name={`line_items.${index}.unit_price`}
@@ -263,33 +296,52 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                                 type="number"
                                 placeholder="0.00"
                                 value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                                onChange={(e) => {
+                                  const price = e.target.value ? parseFloat(e.target.value) : 0
+                                  field.onChange(price)
+                                  // Auto-calculate total
+                                  const qty = form.getValues(`line_items.${index}.quantity`) || 0
+                                  form.setValue(`line_items.${index}.total_price`, qty * price)
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    </div>
 
-                    <FormField
-                      control={form.control}
-                      name={`line_items.${index}.total_price`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Total Price *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="0.00"
-                              value={field.value || ""}
-                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name={`line_items.${index}.total_price`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Price *</FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Input
+                                  type="number"
+                                  placeholder="0.00"
+                                  value={field.value || ""}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                                  className="flex-1"
+                                />
+                                <div className="text-xs text-gray-500 pt-2 whitespace-nowrap">
+                                  {(form.watch(`line_items.${index}.quantity`) || 0) > 0 &&
+                                   (form.watch(`line_items.${index}.unit_price`) || 0) > 0 ? (
+                                    <span className="text-blue-600 font-semibold">
+                                      Auto: {((form.watch(`line_items.${index}.quantity`) || 0) * (form.watch(`line_items.${index}.unit_price`) || 0)).toFixed(2)}
+                                    </span>
+                                  ) : (
+                                    <span>Manual entry</span>
+                                  )}
+                                </div>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

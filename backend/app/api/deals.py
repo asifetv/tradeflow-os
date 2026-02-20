@@ -26,10 +26,14 @@ router = APIRouter(
 async def create_deal(
     deal_data: DealCreate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Create a new deal."""
-    service = DealService(db, user_id=user_id)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deal = await service.create_deal(deal_data)
     await db.commit()
     return deal
@@ -38,13 +42,18 @@ async def create_deal(
 @router.get("", response_model=DealListResponse)
 async def list_deals(
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     status: Optional[DealStatus] = Query(None),
     customer_id: Optional[UUID] = Query(None),
 ):
     """List deals with optional filters."""
-    service = DealService(db)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     return await service.list_deals(
         skip=skip,
         limit=limit,
@@ -57,9 +66,14 @@ async def list_deals(
 async def get_deal(
     deal_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     """Get deal detail."""
-    service = DealService(db)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deal = await service.get_deal(deal_id)
 
     if not deal:
@@ -76,10 +90,14 @@ async def update_deal(
     deal_id: UUID,
     update_data: DealUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update a deal."""
-    service = DealService(db, user_id=user_id)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deal = await service.update_deal(deal_id, update_data)
 
     if not deal:
@@ -97,10 +115,14 @@ async def update_deal_status(
     deal_id: UUID,
     status_update: DealStatusUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update deal status with state machine validation."""
-    service = DealService(db, user_id=user_id)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
 
     try:
         deal = await service.update_deal_status(deal_id, status_update.status)
@@ -124,10 +146,14 @@ async def update_deal_status(
 async def delete_deal(
     deal_id: UUID,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Soft delete a deal."""
-    service = DealService(db, user_id=user_id)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deleted = await service.delete_deal(deal_id)
 
     if not deleted:
@@ -143,11 +169,16 @@ async def delete_deal(
 async def get_deal_activity(
     deal_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
 ):
     """Get activity logs for a deal."""
-    service = DealService(db)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     # Verify deal exists first
     deal = await service.get_deal(deal_id)
     if not deal:

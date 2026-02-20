@@ -1,14 +1,12 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DealsListResponse } from "@/lib/types/deal"
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+import { Deal } from "@/lib/types/deal"
+import { dealApi } from "@/lib/api"
 
 interface CustomerDealsProps {
   customerId: string
@@ -18,14 +16,8 @@ export function CustomerDeals({ customerId }: CustomerDealsProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["customer-deals", customerId],
     queryFn: async () => {
-      const response = await axios.get<DealsListResponse>(
-        `${API_BASE_URL}/api/customers/${customerId}/deals`,
-        {
-          headers: {
-            "X-User-ID": "550e8400-e29b-41d4-a716-446655440000",
-          },
-        }
-      )
+      // Fetch all deals and filter by customer_id
+      const response = await dealApi.list({ customer_id: customerId, skip: 0, limit: 100 })
       return response.data
     },
   })
@@ -40,7 +32,7 @@ export function CustomerDeals({ customerId }: CustomerDealsProps) {
     )
   }
 
-  const deals = data?.deals || []
+  const deals = (data?.items || data?.deals || []) as Deal[]
 
   if (deals.length === 0) {
     return (

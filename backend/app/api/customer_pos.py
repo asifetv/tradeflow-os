@@ -25,10 +25,14 @@ router = APIRouter(
 async def create_customer_po(
     po_data: CustomerPOCreate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Create a new customer PO."""
-    service = CustomerPOService(db, user_id=user_id)
+    service = CustomerPOService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     customer_po = await service.create_customer_po(po_data)
     await db.commit()
     return customer_po
@@ -37,6 +41,7 @@ async def create_customer_po(
 @router.get("", response_model=CustomerPOsListResponse)
 async def list_customer_pos(
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     customer_id: Optional[UUID] = Query(None),
@@ -45,7 +50,11 @@ async def list_customer_pos(
     status: Optional[CustomerPOStatus] = Query(None),
 ):
     """List customer POs with optional filters."""
-    service = CustomerPOService(db)
+    service = CustomerPOService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     return await service.list_customer_pos(
         skip=skip,
         limit=limit,
@@ -60,9 +69,14 @@ async def list_customer_pos(
 async def get_customer_po(
     po_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     """Get customer PO detail."""
-    service = CustomerPOService(db)
+    service = CustomerPOService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     customer_po = await service.get_customer_po(po_id)
 
     if not customer_po:
@@ -79,10 +93,14 @@ async def update_customer_po(
     po_id: UUID,
     update_data: CustomerPOUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update a customer PO."""
-    service = CustomerPOService(db, user_id=user_id)
+    service = CustomerPOService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     customer_po = await service.update_customer_po(po_id, update_data)
 
     if not customer_po:
@@ -100,10 +118,14 @@ async def update_customer_po_status(
     po_id: UUID,
     status_data: CustomerPOStatusUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update customer PO status with state machine validation."""
-    service = CustomerPOService(db, user_id=user_id)
+    service = CustomerPOService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
 
     try:
         customer_po = await service.update_customer_po_status(po_id, status_data.status)
@@ -127,10 +149,14 @@ async def update_customer_po_status(
 async def delete_customer_po(
     po_id: UUID,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Soft delete a customer PO."""
-    service = CustomerPOService(db, user_id=user_id)
+    service = CustomerPOService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deleted = await service.delete_customer_po(po_id)
 
     if not deleted:

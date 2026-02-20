@@ -9,7 +9,6 @@ import { CustomerQuotes } from "@/components/customers/customer-quotes"
 import { CustomerPOs } from "@/components/customers/customer-pos"
 import { useCustomer, useDeleteCustomer } from "@/lib/hooks/use-customers"
 import { useRouter, useParams } from "next/navigation"
-import { TopNav } from "@/components/navigation/top-nav"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +34,6 @@ export default function CustomerDetailPage() {
 
   return (
     <>
-      <TopNav />
       <div className="container mx-auto py-8">
         <div className="flex items-center gap-4 justify-between mb-6">
           <h1 className="text-3xl font-bold">{customer?.company_name || "Customer"}</h1>

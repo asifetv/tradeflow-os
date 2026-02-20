@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { LayoutGrid, LayoutList, Plus } from "lucide-react"
+import { LayoutGrid, LayoutList, Plus, X } from "lucide-react"
 
 import { DealStatus } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,8 @@ import { KanbanBoard } from "@/components/deals/kanban-board"
 import { DealsTable } from "@/components/deals/deals-table"
 import { PipelineDashboard } from "@/components/deals/pipeline-dashboard"
 import { StageVisibilityToggle } from "@/components/deals/stage-visibility-toggle"
+import { CustomerSelector } from "@/components/customers/customer-selector"
 import { useDeals } from "@/lib/hooks/use-deals"
-import { TopNav } from "@/components/navigation/top-nav"
 
 const DEFAULT_VISIBLE_STATUSES = [
   DealStatus.RFQ_RECEIVED,
@@ -37,6 +37,7 @@ export default function DealsPage() {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban")
   const [page, setPage] = useState(0)
   const [visibleStatuses, setVisibleStatuses] = useState<DealStatus[]>(DEFAULT_VISIBLE_STATUSES)
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const limit = 50
 
   // Load visible stages from localStorage
@@ -57,11 +58,16 @@ export default function DealsPage() {
     localStorage.setItem("dealStageVisibility", JSON.stringify(statuses))
   }
 
-  const { data, isLoading } = useDeals(page * limit, limit)
+  // Fetch deals with customer filter
+  const { data, isLoading } = useDeals(
+    page * limit,
+    limit,
+    undefined,
+    selectedCustomerId || undefined
+  )
 
   return (
     <div className="min-h-screen bg-background">
-      <TopNav />
       {/* Header */}
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-8">
@@ -90,6 +96,35 @@ export default function DealsPage() {
         {/* Controls */}
         <Card className="bg-card border border-border shadow-sm">
           <CardContent className="pt-6 space-y-4">
+            {/* Customer Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Filter by Customer:</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <CustomerSelector
+                    value={selectedCustomerId}
+                    onChange={(customerId) => {
+                      setSelectedCustomerId(customerId || null)
+                      setPage(0) // Reset to first page when filter changes
+                    }}
+                  />
+                </div>
+                {selectedCustomerId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCustomerId(null)
+                      setPage(0)
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+
             {/* View Mode Toggle and Stage Controls */}
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2">

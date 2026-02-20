@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Outfit } from 'next/font/google'
 import { Providers } from '@/lib/providers'
+import { TopNav } from '@/components/navigation/top-nav'
 import './globals.css'
 
 const outfit = Outfit({
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
         <Providers>
+          <TopNav />
           {children}
         </Providers>
       </body>

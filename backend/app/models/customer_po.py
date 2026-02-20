@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 import enum
 
-from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, Date, Float
+from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, Date, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 
@@ -26,7 +26,8 @@ class CustomerPO(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
-    internal_ref: Mapped[str] = mapped_column(String(50), nullable=False, index=True, unique=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    internal_ref: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     po_number: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
 
     # References
@@ -81,8 +82,8 @@ class CustomerPO(Base):
 
 
     __table_args__ = (
-        # Index on internal_ref for unique lookups
-        Index("ix_internal_ref", "internal_ref", unique=True),
+        # Internal ref unique per company
+        Index("ix_internal_ref_company", "internal_ref", "company_id", unique=True),
     )
 
     def __repr__(self) -> str:

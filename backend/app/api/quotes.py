@@ -13,6 +13,7 @@ from app.schemas.quote import (
     QuoteStatusUpdate,
     QuoteUpdate,
 )
+from app.schemas.activity_log import DealActivityListResponse
 from app.services.quote import QuoteService
 
 router = APIRouter(
@@ -25,10 +26,14 @@ router = APIRouter(
 async def create_quote(
     quote_data: QuoteCreate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Create a new quote."""
-    service = QuoteService(db, user_id=user_id)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     quote = await service.create_quote(quote_data)
     await db.commit()
     return quote
@@ -37,6 +42,7 @@ async def create_quote(
 @router.get("", response_model=QuotesListResponse)
 async def list_quotes(
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     customer_id: Optional[UUID] = Query(None),
@@ -44,7 +50,11 @@ async def list_quotes(
     status: Optional[QuoteStatus] = Query(None),
 ):
     """List quotes with optional filters."""
-    service = QuoteService(db)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     return await service.list_quotes(
         skip=skip,
         limit=limit,
@@ -58,9 +68,14 @@ async def list_quotes(
 async def get_quote(
     quote_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     """Get quote detail."""
-    service = QuoteService(db)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     quote = await service.get_quote(quote_id)
 
     if not quote:
@@ -77,10 +92,14 @@ async def update_quote(
     quote_id: UUID,
     update_data: QuoteUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update a quote."""
-    service = QuoteService(db, user_id=user_id)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     quote = await service.update_quote(quote_id, update_data)
 
     if not quote:
@@ -98,10 +117,14 @@ async def update_quote_status(
     quote_id: UUID,
     status_data: QuoteStatusUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update quote status with state machine validation."""
-    service = QuoteService(db, user_id=user_id)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
 
     try:
         quote = await service.update_quote_status(quote_id, status_data.status)
@@ -125,10 +148,14 @@ async def update_quote_status(
 async def delete_quote(
     quote_id: UUID,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Soft delete a quote."""
-    service = QuoteService(db, user_id=user_id)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deleted = await service.delete_quote(quote_id)
 
     if not deleted:
@@ -138,3 +165,32 @@ async def delete_quote(
         )
 
     await db.commit()
+
+
+@router.get("/{quote_id}/activity", response_model=DealActivityListResponse)
+async def get_quote_activity(
+    quote_id: UUID,
+    db: SessionDep,
+    current_user: CurrentUserDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+):
+    """Get activity logs for a quote."""
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
+    # Verify quote exists first
+    quote = await service.get_quote(quote_id)
+    if not quote:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Quote {quote_id} not found",
+        )
+
+    logs, total = await service.activity_log_service.get_entity_activity_logs(
+        "quote", quote_id, skip=skip, limit=limit
+    )
+
+    return DealActivityListResponse(activity_logs=logs, total=total)

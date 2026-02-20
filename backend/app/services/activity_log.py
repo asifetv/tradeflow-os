@@ -13,8 +13,9 @@ from app.schemas.activity_log import ActivityLogResponse, ChangeDetail
 class ActivityLogService:
     """Service for creating and retrieving activity logs."""
 
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, company_id: Optional[UUID] = None):
         self.db = db
+        self.company_id = company_id
 
     async def log_activity(
         self,
@@ -24,6 +25,7 @@ class ActivityLogService:
         entity_id: UUID,
         changes: Optional[List[ChangeDetail]] = None,
         user_id: Optional[Union[str, UUID]] = None,
+        company_id: Optional[UUID] = None,
     ) -> ActivityLogResponse:
         """
         Create an activity log entry.
@@ -57,7 +59,11 @@ class ActivityLogService:
                 # user_id is not a valid UUID (e.g., "test-user"), skip it
                 pass
 
+        # Use company_id from parameter or from self
+        log_company_id = company_id or self.company_id
+
         activity_log = ActivityLog(
+            company_id=log_company_id,
             deal_id=deal_id,
             user_id=user_id_uuid,
             action=action,
@@ -129,17 +135,71 @@ class ActivityLogService:
         Returns:
             Tuple of (logs, total_count)
         """
-        # Get total count
-        count_query = select(ActivityLog).where(ActivityLog.deal_id == deal_id)
+        # Get total count (filter by company)
         count_result = await self.db.execute(
-            select(func.count()).select_from(ActivityLog).where(ActivityLog.deal_id == deal_id)
+            select(func.count())
+            .select_from(ActivityLog)
+            .where(
+                (ActivityLog.deal_id == deal_id)
+                & (ActivityLog.company_id == self.company_id)
+            )
         )
         total = count_result.scalar() or 0
 
         # Get paginated results, ordered by created_at DESC (newest first)
         query = (
             select(ActivityLog)
-            .where(ActivityLog.deal_id == deal_id)
+            .where(
+                (ActivityLog.deal_id == deal_id)
+                & (ActivityLog.company_id == self.company_id)
+            )
+            .order_by(ActivityLog.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        result = await self.db.execute(query)
+        logs = result.scalars().all()
+
+        return (
+            [ActivityLogResponse.model_validate(log) for log in logs],
+            total,
+        )
+
+    async def get_entity_activity_logs(
+        self, entity_type: str, entity_id: UUID, skip: int = 0, limit: int = 50
+    ) -> tuple[List[ActivityLogResponse], int]:
+        """
+        Retrieve activity logs for any entity (generic method).
+
+        Args:
+            entity_type: The type of entity (e.g., "quote", "customer")
+            entity_id: The entity ID
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+
+        Returns:
+            Tuple of (logs, total_count)
+        """
+        # Get total count (filter by company)
+        count_result = await self.db.execute(
+            select(func.count())
+            .select_from(ActivityLog)
+            .where(
+                (ActivityLog.entity_type == entity_type)
+                & (ActivityLog.entity_id == entity_id)
+                & (ActivityLog.company_id == self.company_id)
+            )
+        )
+        total = count_result.scalar() or 0
+
+        # Get paginated results, ordered by created_at DESC (newest first)
+        query = (
+            select(ActivityLog)
+            .where(
+                (ActivityLog.entity_type == entity_type)
+                & (ActivityLog.entity_id == entity_id)
+                & (ActivityLog.company_id == self.company_id)
+            )
             .order_by(ActivityLog.created_at.desc())
             .offset(skip)
             .limit(limit)

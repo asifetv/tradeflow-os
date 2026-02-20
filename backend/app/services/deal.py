@@ -44,10 +44,16 @@ VALID_STATUS_TRANSITIONS = {
 class DealService:
     """Service for deal CRUD operations and state management."""
 
-    def __init__(self, db: AsyncSession, user_id: Optional[Union[str, UUID]] = None):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: Optional[Union[str, UUID]] = None,
+        company_id: Optional[UUID] = None,
+    ):
         self.db = db
         self.user_id = user_id
-        self.activity_log_service = ActivityLogService(db)
+        self.company_id = company_id
+        self.activity_log_service = ActivityLogService(db, company_id=company_id)
 
     async def create_deal(self, deal_data: DealCreate) -> DealResponse:
         """
@@ -80,6 +86,7 @@ class DealService:
                 pass
 
         deal = Deal(
+            company_id=self.company_id,
             deal_number=deal_number,
             customer_id=deal_data.customer_id,
             customer_rfq_ref=deal_data.customer_rfq_ref,
@@ -105,6 +112,7 @@ class DealService:
             entity_type="deal",
             entity_id=deal.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return DealResponse.model_validate(deal)
@@ -120,7 +128,9 @@ class DealService:
             Deal response or None if not found
         """
         query = select(Deal).where(
-            (Deal.id == deal_id) & (Deal.deleted_at.is_(None))
+            (Deal.id == deal_id)
+            & (Deal.deleted_at.is_(None))
+            & (Deal.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         deal = result.scalars().first()
@@ -146,8 +156,10 @@ class DealService:
         Returns:
             Paginated list response
         """
-        # Build base query (exclude soft-deleted)
-        query = select(Deal).where(Deal.deleted_at.is_(None))
+        # Build base query (exclude soft-deleted, filter by company)
+        query = select(Deal).where(
+            (Deal.deleted_at.is_(None)) & (Deal.company_id == self.company_id)
+        )
 
         # Apply filters
         if status:
@@ -156,18 +168,14 @@ class DealService:
             query = query.where(Deal.customer_id == customer_id)
 
         # Get total count
-        count_result = await self.db.execute(
-            select(func.count())
-            .select_from(Deal)
-            .where(Deal.deleted_at.is_(None))
+        count_query = select(func.count()).select_from(Deal).where(
+            (Deal.deleted_at.is_(None)) & (Deal.company_id == self.company_id)
         )
         if status:
-            count_query = select(func.count()).select_from(Deal).where(
-                (Deal.deleted_at.is_(None)) & (Deal.status == status)
-            )
-            if customer_id:
-                count_query = count_query.where(Deal.customer_id == customer_id)
-            count_result = await self.db.execute(count_query)
+            count_query = count_query.where(Deal.status == status)
+        if customer_id:
+            count_query = count_query.where(Deal.customer_id == customer_id)
+        count_result = await self.db.execute(count_query)
 
         total = count_result.scalar() or 0
 
@@ -261,6 +269,7 @@ class DealService:
                 entity_id=deal.id,
                 changes=changes,
                 user_id=self.user_id,
+                company_id=self.company_id,
             )
 
         return DealResponse.model_validate(deal)
@@ -313,6 +322,7 @@ class DealService:
                 )
             ],
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return DealResponse.model_validate(deal)
@@ -343,6 +353,7 @@ class DealService:
             entity_type="deal",
             entity_id=deal.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return True
@@ -354,8 +365,10 @@ class DealService:
         Returns:
             Generated deal number
         """
-        # Get the maximum numeric part of existing deal numbers
-        query = select(func.count(Deal.id)).where(Deal.deleted_at.is_(None))
+        # Get the maximum numeric part of existing deal numbers for this company
+        query = select(func.count(Deal.id)).where(
+            (Deal.deleted_at.is_(None)) & (Deal.company_id == self.company_id)
+        )
         result = await self.db.execute(query)
         count = result.scalar() or 0
 
@@ -364,9 +377,11 @@ class DealService:
         return f"DEAL-{next_num:03d}"
 
     async def _get_deal_internal(self, deal_id: UUID) -> Optional[Deal]:
-        """Internal method to get deal (excludes soft-deleted)."""
+        """Internal method to get deal (excludes soft-deleted, filters by company)."""
         query = select(Deal).where(
-            (Deal.id == deal_id) & (Deal.deleted_at.is_(None))
+            (Deal.id == deal_id)
+            & (Deal.deleted_at.is_(None))
+            & (Deal.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         return result.scalars().first()

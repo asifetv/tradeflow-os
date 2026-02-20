@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { BarChart3, Users, FileText, ShoppingCart, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,10 +12,41 @@ import { useQuotes } from "@/lib/hooks/use-quotes"
 import { useCustomerPos } from "@/lib/hooks/use-customer-pos"
 
 export default function DashboardPage() {
-  const { data: customersData } = useCustomers(0, 50, undefined, undefined, undefined)
-  const { data: dealsData } = useDeals(0, 50)
-  const { data: quotesData } = useQuotes(0, 50)
-  const { data: posData } = useCustomerPos(0, 50)
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token")
+    if (!token) {
+      router.push("/auth/login")
+      return
+    }
+    setIsAuthenticated(true)
+    setIsLoading(false)
+  }, [router])
+
+  // Only fetch data if authenticated
+  const { data: customersData } = useCustomers(
+    isAuthenticated ? 0 : undefined,
+    isAuthenticated ? 50 : undefined
+  )
+  const { data: dealsData } = useDeals(
+    isAuthenticated ? 0 : undefined,
+    isAuthenticated ? 50 : undefined
+  )
+  const { data: quotesData } = useQuotes(
+    isAuthenticated ? 0 : undefined,
+    isAuthenticated ? 50 : undefined
+  )
+  const { data: posData } = useCustomerPos(
+    isAuthenticated ? 0 : undefined,
+    isAuthenticated ? 50 : undefined
+  )
+
+  if (isLoading || !isAuthenticated) {
+    return null // Will redirect via useEffect
+  }
 
   const stats = [
     {

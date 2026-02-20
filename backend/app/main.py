@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
 from app.config import settings
 
@@ -44,8 +44,9 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
+        max_age=600,
     )
 
     # Health check endpoint
@@ -58,15 +59,26 @@ def create_app() -> FastAPI:
         # TODO: check DB, Redis, MinIO connectivity
         return {"status": "ready"}
 
+    # Add explicit CORS handling for OPTIONS requests
+    @app.options("/{full_path:path}")
+    async def options_handler(full_path: str):
+        return {"status": "ok"}
+
     # Register routers
+    from app.api.auth import router as auth_router
     from app.api.deals import router as deals_router
     from app.api.customers import router as customers_router
     from app.api.quotes import router as quotes_router
     from app.api.customer_pos import router as customer_pos_router
+    from app.api.vendors import router as vendors_router
+    from app.api.vendor_proposals import router as vendor_proposals_router
+    app.include_router(auth_router)
     app.include_router(deals_router)
     app.include_router(customers_router)
     app.include_router(quotes_router)
     app.include_router(customer_pos_router)
+    app.include_router(vendors_router)
+    app.include_router(vendor_proposals_router)
 
     return app
 

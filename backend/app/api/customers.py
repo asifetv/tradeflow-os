@@ -29,10 +29,14 @@ router = APIRouter(
 async def create_customer(
     customer_data: CustomerCreate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Create a new customer."""
-    service = CustomerService(db, user_id=user_id)
+    service = CustomerService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     customer = await service.create_customer(customer_data)
     await db.commit()
     return customer
@@ -41,6 +45,7 @@ async def create_customer(
 @router.get("", response_model=CustomersListResponse)
 async def list_customers(
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     is_active: Optional[bool] = Query(None),
@@ -48,7 +53,11 @@ async def list_customers(
     search: Optional[str] = Query(None),
 ):
     """List customers with optional filters."""
-    service = CustomerService(db)
+    service = CustomerService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     return await service.list_customers(
         skip=skip,
         limit=limit,
@@ -62,9 +71,14 @@ async def list_customers(
 async def get_customer(
     customer_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     """Get customer detail."""
-    service = CustomerService(db)
+    service = CustomerService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     customer = await service.get_customer(customer_id)
 
     if not customer:
@@ -81,10 +95,14 @@ async def update_customer(
     customer_id: UUID,
     update_data: CustomerUpdate,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Update a customer."""
-    service = CustomerService(db, user_id=user_id)
+    service = CustomerService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     customer = await service.update_customer(customer_id, update_data)
 
     if not customer:
@@ -101,10 +119,14 @@ async def update_customer(
 async def delete_customer(
     customer_id: UUID,
     db: SessionDep,
-    user_id: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     """Soft delete a customer."""
-    service = CustomerService(db, user_id=user_id)
+    service = CustomerService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     deleted = await service.delete_customer(customer_id)
 
     if not deleted:
@@ -120,11 +142,16 @@ async def delete_customer(
 async def get_customer_deals(
     customer_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
 ):
     """Get all deals linked to a customer."""
-    service = DealService(db)
+    service = DealService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     return await service.list_deals(
         skip=skip,
         limit=limit,
@@ -136,11 +163,16 @@ async def get_customer_deals(
 async def get_customer_quotes(
     customer_id: UUID,
     db: SessionDep,
+    current_user: CurrentUserDep,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
 ):
     """Get all quotes linked to a customer."""
-    service = QuoteService(db)
+    service = QuoteService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"]
+    )
     return await service.list_quotes(
         skip=skip,
         limit=limit,

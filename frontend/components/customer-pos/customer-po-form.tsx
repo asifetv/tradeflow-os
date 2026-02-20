@@ -1,14 +1,16 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus, X } from "lucide-react"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -21,8 +23,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomerPO } from "@/lib/types/customer-po"
 import { customerPoFormSchema, type CustomerPoFormValues } from "@/lib/validations/customer-po"
 import { useCreateCustomerPo, useUpdateCustomerPo } from "@/lib/hooks/use-customer-pos"
+import { useQuotes } from "@/lib/hooks/use-quotes"
 import { CustomerSelector } from "@/components/customers/customer-selector"
 import { DealSelector } from "@/components/deals/deal-selector"
+import { QuoteSelector } from "@/components/quotes/quote-selector"
 
 interface CustomerPoFormProps {
   initialCustomerPo?: CustomerPO
@@ -53,6 +57,47 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
     control: form.control,
     name: "line_items",
   })
+
+  // Watch form fields for auto-population
+  const customerId = useWatch({ control: form.control, name: "customer_id" })
+  const dealId = useWatch({ control: form.control, name: "deal_id" })
+  const quoteId = useWatch({ control: form.control, name: "quote_id" })
+
+  // Fetch quotes filtered by customer and deal
+  const { data: quotesData } = useQuotes(0, 50, customerId, dealId, undefined)
+  const quotes = quotesData?.quotes || []
+
+  // Auto-populate when quote is selected - only when we have quotes loaded and a quoteId
+  useEffect(() => {
+    if (quoteId && quotes && quotes.length > 0) {
+      const selectedQuote = quotes.find(q => q.id === quoteId)
+      if (selectedQuote) {
+        console.log("Auto-populating from quote:", selectedQuote)
+
+        // Auto-populate line items from quote
+        if (selectedQuote.line_items && selectedQuote.line_items.length > 0) {
+          form.setValue("line_items", selectedQuote.line_items.map((item: any) => ({
+            description: item.description,
+            material_spec: item.material_spec || null,
+            quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
+            unit: item.unit,
+            unit_price: typeof item.unit_price === 'string' ? parseFloat(item.unit_price) : item.unit_price,
+            total_price: typeof item.total_price === 'string' ? parseFloat(item.total_price) : item.total_price,
+          })), { shouldValidate: false })
+        }
+
+        // Auto-populate amount and currency
+        const amount = typeof selectedQuote.total_amount === 'string'
+          ? parseFloat(selectedQuote.total_amount)
+          : selectedQuote.total_amount
+
+        form.setValue("total_amount", amount, { shouldValidate: false })
+        form.setValue("currency", selectedQuote.currency, { shouldValidate: false })
+
+        console.log("Auto-populated total_amount:", amount)
+      }
+    }
+  }, [quoteId, quotes, form])
 
   const isLoading = createMutation.isPending || updateMutation.isPending
 
@@ -156,8 +201,16 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                 render={({ field }) => (
                   <FormItem className="mt-6">
                     <FormLabel>Quote (Optional)</FormLabel>
+                    <FormDescription>
+                      Select a quote to auto-populate line items and amount
+                    </FormDescription>
                     <FormControl>
-                      <Input placeholder="Link to a quote..." {...field} value={field.value ?? ""} />
+                      <QuoteSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                        customerId={customerId}
+                        dealId={dealId}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

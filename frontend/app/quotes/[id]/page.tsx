@@ -1,12 +1,13 @@
 "use client"
-import { TopNav } from "@/components/navigation/top-nav"
 
 import { Button } from "@/components/ui/button"
-import { Home } from "lucide-react"
+import { Home, ChevronDown } from "lucide-react"
 import Link from "next/link"
-import { useQuote, useDeleteQuote, useUpdateQuoteStatus } from "@/lib/hooks/use-quotes"
+import { useQuote, useDeleteQuote, useUpdateQuoteStatus, useQuoteActivity } from "@/lib/hooks/use-quotes"
 import { useRouter, useParams } from "next/navigation"
 import { QuoteCard } from "@/components/quotes/quote-card"
+import { ActivityTimeline } from "@/components/deals/activity-timeline"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,7 @@ export default function QuoteDetailPage() {
   const id = params.id as string
   const router = useRouter()
   const { data: quote } = useQuote(id)
+  const { data: activityData, isLoading: isActivityLoading } = useQuoteActivity(id)
   const deleteQuote = useDeleteQuote()
   const updateQuoteStatus = useUpdateQuoteStatus(id)
 
@@ -65,7 +67,28 @@ export default function QuoteDetailPage() {
         <div className="flex justify-between items-center flex-1">
           <h1 className="text-3xl font-bold">{quote?.title || "Quote"}</h1>
           <div className="flex gap-2">
-            {validTransitions.length > 0 && (
+            {/* Show "Send Quote" button for DRAFT status */}
+            {quote?.status === QuoteStatus.DRAFT && (
+              <Button
+                onClick={() => handleStatusChange(QuoteStatus.SENT)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Send Quote
+              </Button>
+            )}
+
+            {/* Show "Accept Quote" button for SENT status */}
+            {quote?.status === QuoteStatus.SENT && (
+              <Button
+                onClick={() => handleStatusChange(QuoteStatus.ACCEPTED)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Accept Quote
+              </Button>
+            )}
+
+            {/* Show status dropdown for other transitions */}
+            {validTransitions.length > 0 && quote?.status !== QuoteStatus.DRAFT && quote?.status !== QuoteStatus.SENT && (
               <Select onValueChange={(value) => handleStatusChange(value as QuoteStatus)}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Change status..." />
@@ -105,7 +128,26 @@ export default function QuoteDetailPage() {
         </div>
       </div>
 
-      <QuoteCard quoteId={id} />
+      <Tabs defaultValue="details" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="details">Quote Details</TabsTrigger>
+          <TabsTrigger value="activity">Activity Log</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details" className="mt-6">
+          <QuoteCard quoteId={id} />
+        </TabsContent>
+
+        <TabsContent value="activity" className="mt-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold mb-4">Activity Timeline</h3>
+            <ActivityTimeline
+              activityLogs={activityData?.activity_logs || []}
+              isLoading={isActivityLoading}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

@@ -2,12 +2,10 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { CustomerTable } from "@/components/customers/customer-table"
 import { Plus } from "lucide-react"
-import { TopNav } from "@/components/navigation/top-nav"
 
 export default function CustomersPage() {
   return (
     <div className="min-h-screen bg-background">
-      <TopNav />
       {/* Header */}
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-8">

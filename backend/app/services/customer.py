@@ -18,10 +18,16 @@ from app.services.activity_log import ActivityLogService
 class CustomerService:
     """Service for customer CRUD operations."""
 
-    def __init__(self, db: AsyncSession, user_id: Optional[Union[str, UUID]] = None):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: Optional[Union[str, UUID]] = None,
+        company_id: Optional[UUID] = None,
+    ):
         self.db = db
         self.user_id = user_id
-        self.activity_log_service = ActivityLogService(db)
+        self.company_id = company_id
+        self.activity_log_service = ActivityLogService(db, company_id=company_id)
 
     async def create_customer(self, customer_data: CustomerCreate) -> CustomerResponse:
         """
@@ -39,6 +45,7 @@ class CustomerService:
             customer_code = await self._generate_customer_code()
 
         customer = Customer(
+            company_id=self.company_id,
             customer_code=customer_code,
             company_name=customer_data.company_name,
             country=customer_data.country,
@@ -64,6 +71,7 @@ class CustomerService:
             entity_type="customer",
             entity_id=customer.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return CustomerResponse.model_validate(customer)
@@ -75,8 +83,10 @@ class CustomerService:
         Returns:
             Generated customer code
         """
-        # Get the maximum numeric part of existing customer codes
-        query = select(func.count(Customer.id)).where(Customer.deleted_at.is_(None))
+        # Get the maximum numeric part of existing customer codes for this company
+        query = select(func.count(Customer.id)).where(
+            (Customer.deleted_at.is_(None)) & (Customer.company_id == self.company_id)
+        )
         result = await self.db.execute(query)
         count = result.scalar() or 0
 
@@ -95,7 +105,9 @@ class CustomerService:
             Customer response or None if not found
         """
         query = select(Customer).where(
-            (Customer.id == customer_id) & (Customer.deleted_at.is_(None))
+            (Customer.id == customer_id)
+            & (Customer.deleted_at.is_(None))
+            & (Customer.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         customer = result.scalars().first()
@@ -123,8 +135,10 @@ class CustomerService:
         Returns:
             Paginated list response
         """
-        # Build base query (exclude soft-deleted)
-        query = select(Customer).where(Customer.deleted_at.is_(None))
+        # Build base query (exclude soft-deleted, filter by company)
+        query = select(Customer).where(
+            (Customer.deleted_at.is_(None)) & (Customer.company_id == self.company_id)
+        )
 
         # Apply filters
         if is_active is not None:
@@ -140,7 +154,7 @@ class CustomerService:
 
         # Get total count
         count_query = select(func.count()).select_from(Customer).where(
-            Customer.deleted_at.is_(None)
+            (Customer.deleted_at.is_(None)) & (Customer.company_id == self.company_id)
         )
         if is_active is not None:
             count_query = count_query.where(Customer.is_active == is_active)
@@ -240,6 +254,7 @@ class CustomerService:
                 entity_id=customer.id,
                 changes=changes,
                 user_id=self.user_id,
+                company_id=self.company_id,
             )
 
         return CustomerResponse.model_validate(customer)
@@ -270,14 +285,17 @@ class CustomerService:
             entity_type="customer",
             entity_id=customer.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return True
 
     async def _get_customer_internal(self, customer_id: UUID) -> Optional[Customer]:
-        """Internal method to get customer (excludes soft-deleted)."""
+        """Internal method to get customer (excludes soft-deleted, filters by company)."""
         query = select(Customer).where(
-            (Customer.id == customer_id) & (Customer.deleted_at.is_(None))
+            (Customer.id == customer_id)
+            & (Customer.deleted_at.is_(None))
+            & (Customer.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         return result.scalars().first()

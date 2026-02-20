@@ -17,14 +17,15 @@ import { cn } from "@/lib/utils"
 interface DealSelectorProps {
   value?: string | null
   onChange?: (dealId: string) => void
+  customerId?: string | null
 }
 
-export function DealSelector({ value, onChange }: DealSelectorProps) {
+export function DealSelector({ value, onChange, customerId }: DealSelectorProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
 
-  // Load all deals once
-  const { data: dealsData, isLoading } = useDeals(0, 50)
+  // Load deals filtered by customer if provided
+  const { data: dealsData, isLoading } = useDeals(0, 50, undefined, customerId || undefined)
 
   const deals = dealsData?.deals || []
   const selectedDeal = deals.find((d) => d.id === value)

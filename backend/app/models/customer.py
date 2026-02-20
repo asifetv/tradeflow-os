@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, String, Text, func, Index, Float, Boolean
+from sqlalchemy import DateTime, String, Text, func, Index, Float, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 
@@ -16,7 +16,8 @@ class Customer(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
-    customer_code: Mapped[str] = mapped_column(String(50), nullable=False, index=True, unique=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    customer_code: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     # Company Details
     company_name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
@@ -57,8 +58,8 @@ class Customer(Base):
 
 
     __table_args__ = (
-        # Index on customer_code for unique lookups
-        Index("ix_customer_code", "customer_code", unique=True),
+        # Customer code unique per company
+        Index("ix_customer_code_company", "customer_code", "company_id", unique=True),
     )
 
     def __repr__(self) -> str:

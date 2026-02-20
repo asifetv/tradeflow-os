@@ -225,7 +225,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 gap-6">
                     <div>
                       <Label>Quantity</Label>
                       <Input
@@ -235,14 +235,60 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                         {...form.register(`line_items.${index}.quantity`, {
                           valueAsNumber: true,
                         })}
+                        onChange={(e) => {
+                          form.setValue(`line_items.${index}.quantity`, parseFloat(e.target.value) || 0)
+                          const unitPrice = form.getValues(`line_items.${index}.unit_price`) || 0
+                          const quantity = parseFloat(e.target.value) || 0
+                          form.setValue(`line_items.${index}.unit_total`, quantity * unitPrice)
+                        }}
                       />
                     </div>
                     <div>
                       <Label>Unit</Label>
                       <Input
-                        placeholder="e.g., MT, KM"
+                        placeholder="e.g., MT, KM, Barrels"
                         {...form.register(`line_items.${index}.unit`)}
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <Label>Unit Price</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...form.register(`line_items.${index}.unit_price`, {
+                          valueAsNumber: true,
+                        })}
+                        onChange={(e) => {
+                          const price = parseFloat(e.target.value) || 0
+                          form.setValue(`line_items.${index}.unit_price`, price)
+                          const quantity = form.getValues(`line_items.${index}.quantity`) || 0
+                          form.setValue(`line_items.${index}.unit_total`, quantity * price)
+                        }}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter price per unit
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Total Price</Label>
+                      <div className="space-y-2">
+                        <div className="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm font-semibold text-blue-700">
+                          {(form.watch(`line_items.${index}.unit_total`) || 0).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {(form.watch(`line_items.${index}.quantity`) || 0) > 0 &&
+                           (form.watch(`line_items.${index}.unit_price`) || 0) > 0
+                            ? `Auto: ${(form.watch(`line_items.${index}.quantity`) || 0)} × ${(form.watch(`line_items.${index}.unit_price`) || 0)}`
+                            : 'Qty × Unit Price'}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex flex-col">
                       <Label>Delivery Date</Label>
@@ -277,6 +323,8 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
                   material_spec: "",
                   quantity: 0,
                   unit: "",
+                  unit_price: 0,
+                  unit_total: 0,
                   required_delivery_date: "",
                 })
               }

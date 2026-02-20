@@ -3,7 +3,6 @@
  */
 
 "use client"
-import { TopNav } from "@/components/navigation/top-nav"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -80,7 +79,6 @@ export default function DealDetailPage() {
   if (!deal) {
     return (
       <>
-        <TopNav />
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-2">Deal not found</h2>
@@ -97,7 +95,6 @@ export default function DealDetailPage() {
 
   return (
     <>
-      <TopNav />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">

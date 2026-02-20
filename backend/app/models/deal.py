@@ -1,13 +1,16 @@
 """Deal model - the central entity of TradeFlow OS."""
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 from uuid import UUID
 
 from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models.vendor_proposal import VendorProposal
 
 
 class DealStatus(str, enum.Enum):
@@ -33,6 +36,7 @@ class Deal(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
     deal_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     # Status & Workflow
@@ -87,10 +91,12 @@ class Deal(Base):
         nullable=True
     )
 
+    # Relationships
+    vendor_proposals: Mapped[List["VendorProposal"]] = relationship("VendorProposal", back_populates="deal", cascade="all, delete-orphan")
 
     __table_args__ = (
-        # Index on deal_number for unique lookups
-        Index("ix_deal_number", "deal_number", unique=True),
+        # Deal number unique per company
+        Index("ix_deal_number_company", "deal_number", "company_id", unique=True),
     )
 
     def __repr__(self) -> str:

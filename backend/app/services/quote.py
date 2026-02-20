@@ -30,10 +30,16 @@ VALID_QUOTE_STATUS_TRANSITIONS = {
 class QuoteService:
     """Service for quote CRUD operations and state management."""
 
-    def __init__(self, db: AsyncSession, user_id: Optional[Union[str, UUID]] = None):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: Optional[Union[str, UUID]] = None,
+        company_id: Optional[UUID] = None,
+    ):
         self.db = db
         self.user_id = user_id
-        self.activity_log_service = ActivityLogService(db)
+        self.company_id = company_id
+        self.activity_log_service = ActivityLogService(db, company_id=company_id)
 
     async def create_quote(self, quote_data: QuoteCreate) -> QuoteResponse:
         """
@@ -54,6 +60,7 @@ class QuoteService:
         line_items_dict = [item.model_dump() for item in quote_data.line_items]
 
         quote = Quote(
+            company_id=self.company_id,
             quote_number=quote_number,
             customer_id=quote_data.customer_id,
             deal_id=quote_data.deal_id,
@@ -75,6 +82,46 @@ class QuoteService:
         await self.db.flush()
         await self.db.refresh(quote)
 
+        # Auto-update deal status to QUOTED if deal_id is set
+        if quote_data.deal_id:
+            from app.models.deal import Deal, DealStatus
+            from app.services.deal import VALID_STATUS_TRANSITIONS
+
+            # Get the deal (filter by company)
+            deal_query = select(Deal).where(
+                (Deal.id == quote_data.deal_id)
+                & (Deal.deleted_at.is_(None))
+                & (Deal.company_id == self.company_id)
+            )
+            deal_result = await self.db.execute(deal_query)
+            deal = deal_result.scalars().first()
+
+            if deal:
+                # Try to move to QUOTED if it's a valid transition
+                valid_transitions = VALID_STATUS_TRANSITIONS.get(deal.status, [])
+                if DealStatus.QUOTED in valid_transitions:
+                    old_deal_status = deal.status
+                    deal.status = DealStatus.QUOTED
+                    await self.db.flush()
+                    await self.db.refresh(deal)
+
+                    # Log deal auto-update
+                    await self.activity_log_service.log_activity(
+                        deal_id=deal.id,
+                        action="auto_status_changed",
+                        entity_type="deal",
+                        entity_id=deal.id,
+                        changes=[
+                            ChangeDetail(
+                                field="status",
+                                old_value=str(old_deal_status),
+                                new_value=str(DealStatus.QUOTED),
+                            )
+                        ],
+                        user_id=self.user_id,
+                        company_id=self.company_id,
+                    )
+
         # Log creation
         await self.activity_log_service.log_activity(
             deal_id=quote_data.deal_id,
@@ -82,6 +129,7 @@ class QuoteService:
             entity_type="quote",
             entity_id=quote.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return QuoteResponse.model_validate(quote)
@@ -97,7 +145,9 @@ class QuoteService:
             Quote response or None if not found
         """
         query = select(Quote).where(
-            (Quote.id == quote_id) & (Quote.deleted_at.is_(None))
+            (Quote.id == quote_id)
+            & (Quote.deleted_at.is_(None))
+            & (Quote.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         quote = result.scalars().first()
@@ -125,8 +175,10 @@ class QuoteService:
         Returns:
             Paginated list response
         """
-        # Build base query (exclude soft-deleted)
-        query = select(Quote).where(Quote.deleted_at.is_(None))
+        # Build base query (exclude soft-deleted, filter by company)
+        query = select(Quote).where(
+            (Quote.deleted_at.is_(None)) & (Quote.company_id == self.company_id)
+        )
 
         # Apply filters
         if customer_id:
@@ -138,7 +190,7 @@ class QuoteService:
 
         # Get total count
         count_query = select(func.count()).select_from(Quote).where(
-            Quote.deleted_at.is_(None)
+            (Quote.deleted_at.is_(None)) & (Quote.company_id == self.company_id)
         )
         if customer_id:
             count_query = count_query.where(Quote.customer_id == customer_id)
@@ -242,6 +294,7 @@ class QuoteService:
                 entity_id=quote.id,
                 changes=changes,
                 user_id=self.user_id,
+                company_id=self.company_id,
             )
 
         return QuoteResponse.model_validate(quote)
@@ -280,6 +333,44 @@ class QuoteService:
         await self.db.flush()
         await self.db.refresh(quote)
 
+        # Auto-update deal status when quote is accepted
+        if new_status == QuoteStatus.ACCEPTED and quote.deal_id:
+            from app.models.deal import Deal, DealStatus
+            from app.services.deal import VALID_STATUS_TRANSITIONS
+
+            # Get the deal (filter by company)
+            deal_query = select(Deal).where(
+                (Deal.id == quote.deal_id)
+                & (Deal.deleted_at.is_(None))
+                & (Deal.company_id == self.company_id)
+            )
+            deal_result = await self.db.execute(deal_query)
+            deal = deal_result.scalars().first()
+
+            if deal and DealStatus.QUOTED in VALID_STATUS_TRANSITIONS.get(deal.status, []):
+                # Auto-update deal status
+                old_deal_status = deal.status
+                deal.status = DealStatus.QUOTED
+                await self.db.flush()
+                await self.db.refresh(deal)
+
+                # Log deal auto-update
+                await self.activity_log_service.log_activity(
+                    deal_id=deal.id,
+                    action="auto_status_changed",
+                    entity_type="deal",
+                    entity_id=deal.id,
+                    changes=[
+                        ChangeDetail(
+                            field="status",
+                            old_value=str(old_deal_status),
+                            new_value=str(DealStatus.QUOTED),
+                        )
+                    ],
+                    user_id=self.user_id,
+                    company_id=self.company_id,
+                )
+
         # Log status change
         await self.activity_log_service.log_activity(
             deal_id=quote.deal_id,
@@ -294,6 +385,7 @@ class QuoteService:
                 )
             ],
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return QuoteResponse.model_validate(quote)
@@ -324,6 +416,7 @@ class QuoteService:
             entity_type="quote",
             entity_id=quote.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return True
@@ -337,9 +430,11 @@ class QuoteService:
         """
         from datetime import datetime
 
-        # Get the maximum numeric part of quotes from current year
+        # Get the maximum numeric part of quotes from current year for this company
         current_year = datetime.now().year
-        query = select(func.count(Quote.id)).where(Quote.deleted_at.is_(None))
+        query = select(func.count(Quote.id)).where(
+            (Quote.deleted_at.is_(None)) & (Quote.company_id == self.company_id)
+        )
         result = await self.db.execute(query)
         count = result.scalar() or 0
 
@@ -348,9 +443,11 @@ class QuoteService:
         return f"QT-{current_year}-{next_num:03d}"
 
     async def _get_quote_internal(self, quote_id: UUID) -> Optional[Quote]:
-        """Internal method to get quote (excludes soft-deleted)."""
+        """Internal method to get quote (excludes soft-deleted, filters by company)."""
         query = select(Quote).where(
-            (Quote.id == quote_id) & (Quote.deleted_at.is_(None))
+            (Quote.id == quote_id)
+            & (Quote.deleted_at.is_(None))
+            & (Quote.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         return result.scalars().first()

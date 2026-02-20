@@ -29,10 +29,16 @@ VALID_CUSTOMER_PO_STATUS_TRANSITIONS = {
 class CustomerPOService:
     """Service for customer PO CRUD operations and state management."""
 
-    def __init__(self, db: AsyncSession, user_id: Optional[Union[str, UUID]] = None):
+    def __init__(
+        self,
+        db: AsyncSession,
+        user_id: Optional[Union[str, UUID]] = None,
+        company_id: Optional[UUID] = None,
+    ):
         self.db = db
         self.user_id = user_id
-        self.activity_log_service = ActivityLogService(db)
+        self.company_id = company_id
+        self.activity_log_service = ActivityLogService(db, company_id=company_id)
 
     async def create_customer_po(self, po_data: CustomerPOCreate) -> CustomerPOResponse:
         """
@@ -53,6 +59,7 @@ class CustomerPOService:
         line_items_dict = [item.model_dump() for item in po_data.line_items]
 
         customer_po = CustomerPO(
+            company_id=self.company_id,
             internal_ref=internal_ref,
             po_number=po_data.po_number,
             customer_id=po_data.customer_id,
@@ -78,6 +85,7 @@ class CustomerPOService:
             entity_type="customer_po",
             entity_id=customer_po.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return CustomerPOResponse.model_validate(customer_po)
@@ -93,7 +101,9 @@ class CustomerPOService:
             CustomerPO response or None if not found
         """
         query = select(CustomerPO).where(
-            (CustomerPO.id == po_id) & (CustomerPO.deleted_at.is_(None))
+            (CustomerPO.id == po_id)
+            & (CustomerPO.deleted_at.is_(None))
+            & (CustomerPO.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         customer_po = result.scalars().first()
@@ -123,8 +133,10 @@ class CustomerPOService:
         Returns:
             Paginated list response
         """
-        # Build base query (exclude soft-deleted)
-        query = select(CustomerPO).where(CustomerPO.deleted_at.is_(None))
+        # Build base query (exclude soft-deleted, filter by company)
+        query = select(CustomerPO).where(
+            (CustomerPO.deleted_at.is_(None)) & (CustomerPO.company_id == self.company_id)
+        )
 
         # Apply filters
         if customer_id:
@@ -138,7 +150,7 @@ class CustomerPOService:
 
         # Get total count
         count_query = select(func.count()).select_from(CustomerPO).where(
-            CustomerPO.deleted_at.is_(None)
+            (CustomerPO.deleted_at.is_(None)) & (CustomerPO.company_id == self.company_id)
         )
         if customer_id:
             count_query = count_query.where(CustomerPO.customer_id == customer_id)
@@ -242,6 +254,7 @@ class CustomerPOService:
                 entity_id=customer_po.id,
                 changes=changes,
                 user_id=self.user_id,
+                company_id=self.company_id,
             )
 
         return CustomerPOResponse.model_validate(customer_po)
@@ -295,43 +308,72 @@ class CustomerPOService:
                 )
             ],
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
-        # Auto-update deal status if PO acknowledged and deal_id is set
-        if new_status == CustomerPOStatus.ACKNOWLEDGED and customer_po.deal_id:
+        # Auto-update deal status based on PO status transitions
+        if customer_po.deal_id:
             # Import here to avoid circular imports
             from app.models.deal import Deal, DealStatus
             from app.services.deal import VALID_STATUS_TRANSITIONS
 
-            # Get the deal
+            # Get the deal (filter by company)
             deal_query = select(Deal).where(
-                (Deal.id == customer_po.deal_id) & (Deal.deleted_at.is_(None))
+                (Deal.id == customer_po.deal_id)
+                & (Deal.deleted_at.is_(None))
+                & (Deal.company_id == self.company_id)
             )
             deal_result = await self.db.execute(deal_query)
             deal = deal_result.scalars().first()
 
-            if deal and DealStatus.PO_RECEIVED in VALID_STATUS_TRANSITIONS.get(deal.status, []):
-                # Auto-update deal status
-                old_deal_status = deal.status
-                deal.status = DealStatus.PO_RECEIVED
-                await self.db.flush()
-                await self.db.refresh(deal)
+            if deal:
+                # Smart status progression: only move to next valid stage if available
+                target_deal_status = None
+                valid_transitions = VALID_STATUS_TRANSITIONS.get(deal.status, [])
 
-                # Log deal auto-update
-                await self.activity_log_service.log_activity(
-                    deal_id=deal.id,
-                    action="auto_status_changed",
-                    entity_type="deal",
-                    entity_id=deal.id,
-                    changes=[
-                        ChangeDetail(
-                            field="status",
-                            old_value=str(old_deal_status),
-                            new_value=str(DealStatus.PO_RECEIVED),
-                        )
-                    ],
-                    user_id=self.user_id,
-                )
+                # Determine target status based on PO status and current deal status
+                if new_status == CustomerPOStatus.ACKNOWLEDGED:
+                    # Move to PO_RECEIVED when PO is acknowledged
+                    target_deal_status = DealStatus.PO_RECEIVED if DealStatus.PO_RECEIVED in valid_transitions else None
+
+                elif new_status == CustomerPOStatus.IN_PROGRESS:
+                    # Move to next logical status: ORDERED or IN_PRODUCTION depending on current status
+                    if deal.status == DealStatus.PO_RECEIVED:
+                        target_deal_status = DealStatus.ORDERED if DealStatus.ORDERED in valid_transitions else None
+                    elif deal.status == DealStatus.ORDERED:
+                        target_deal_status = DealStatus.IN_PRODUCTION if DealStatus.IN_PRODUCTION in valid_transitions else None
+
+                elif new_status == CustomerPOStatus.FULFILLED:
+                    # Move to SHIPPED or DELIVERED depending on current status
+                    if deal.status == DealStatus.IN_PRODUCTION:
+                        target_deal_status = DealStatus.SHIPPED if DealStatus.SHIPPED in valid_transitions else None
+                    elif deal.status == DealStatus.SHIPPED:
+                        target_deal_status = DealStatus.DELIVERED if DealStatus.DELIVERED in valid_transitions else None
+
+                # If there's a target status, update the deal
+                if target_deal_status:
+                    # Auto-update deal status
+                    old_deal_status = deal.status
+                    deal.status = target_deal_status
+                    await self.db.flush()
+                    await self.db.refresh(deal)
+
+                    # Log deal auto-update
+                    await self.activity_log_service.log_activity(
+                        deal_id=deal.id,
+                        action="auto_status_changed",
+                        entity_type="deal",
+                        entity_id=deal.id,
+                        changes=[
+                            ChangeDetail(
+                                field="status",
+                                old_value=str(old_deal_status),
+                                new_value=str(target_deal_status),
+                            )
+                        ],
+                        user_id=self.user_id,
+                        company_id=self.company_id,
+                    )
 
         return CustomerPOResponse.model_validate(customer_po)
 
@@ -361,6 +403,7 @@ class CustomerPOService:
             entity_type="customer_po",
             entity_id=customer_po.id,
             user_id=self.user_id,
+            company_id=self.company_id,
         )
 
         return True
@@ -374,9 +417,11 @@ class CustomerPOService:
         """
         from datetime import datetime
 
-        # Get the maximum numeric part of customer POs from current year
+        # Get the maximum numeric part of customer POs from current year for this company
         current_year = datetime.now().year
-        query = select(func.count(CustomerPO.id)).where(CustomerPO.deleted_at.is_(None))
+        query = select(func.count(CustomerPO.id)).where(
+            (CustomerPO.deleted_at.is_(None)) & (CustomerPO.company_id == self.company_id)
+        )
         result = await self.db.execute(query)
         count = result.scalar() or 0
 
@@ -385,9 +430,11 @@ class CustomerPOService:
         return f"CPO-{current_year}-{next_num:03d}"
 
     async def _get_customer_po_internal(self, po_id: UUID) -> Optional[CustomerPO]:
-        """Internal method to get customer PO (excludes soft-deleted)."""
+        """Internal method to get customer PO (excludes soft-deleted, filters by company)."""
         query = select(CustomerPO).where(
-            (CustomerPO.id == po_id) & (CustomerPO.deleted_at.is_(None))
+            (CustomerPO.id == po_id)
+            & (CustomerPO.deleted_at.is_(None))
+            & (CustomerPO.company_id == self.company_id)
         )
         result = await self.db.execute(query)
         return result.scalars().first()

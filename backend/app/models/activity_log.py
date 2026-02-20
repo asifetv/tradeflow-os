@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, String, Text, func, JSON
+from sqlalchemy import DateTime, String, Text, func, JSON, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -16,6 +16,7 @@ class ActivityLog(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
     deal_id: Mapped[Optional[UUID]] = mapped_column(nullable=True, index=True)
     user_id: Mapped[Optional[UUID]] = mapped_column(nullable=True)
 
@@ -44,6 +45,10 @@ class ActivityLog(Base):
         default=func.now(),
         nullable=False,
         index=True
+    )
+
+    __table_args__ = (
+        Index("ix_activity_logs_entity", "entity_type", "entity_id"),
     )
 
     def __repr__(self) -> str:

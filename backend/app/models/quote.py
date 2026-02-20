@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 import enum
 
-from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, Date
+from sqlalchemy import DateTime, Enum, String, Text, func, JSON, Index, Date, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 
@@ -27,7 +27,8 @@ class Quote(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
-    quote_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True, unique=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    quote_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     # References
     customer_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
@@ -89,8 +90,8 @@ class Quote(Base):
 
 
     __table_args__ = (
-        # Index on quote_number for unique lookups
-        Index("ix_quote_number", "quote_number", unique=True),
+        # Quote number unique per company
+        Index("ix_quote_number_company", "quote_number", "company_id", unique=True),
     )
 
     def __repr__(self) -> str:

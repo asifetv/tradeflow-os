@@ -15,6 +15,8 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here for 'autogenerate' support
 from app.database import Base
+# Import all models to register them with Base.metadata
+import app.models  # noqa: F401
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
@@ -33,8 +35,25 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    from app.config import settings
+    import os
+
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = config.get_main_option("sqlalchemy.url")
+
+    # For SQLite with aiosqlite, convert to sync SQLite URL for migration
+    database_url = settings.DATABASE_URL
+    if "sqlite+aiosqlite" in database_url:
+        # Convert aiosqlite:/// to sqlite:///
+        # Handle both /:memory: and ./path/to/db.db
+        database_url = database_url.replace("sqlite+aiosqlite:///", "sqlite:///")
+
+        # For relative paths, convert to absolute path
+        if database_url.startswith("sqlite:///./"):
+            rel_path = database_url.replace("sqlite:///./", "")
+            abs_path = os.path.abspath(rel_path)
+            database_url = f"sqlite:///{abs_path}"
+
+    configuration["sqlalchemy.url"] = database_url
 
     connectable = engine_from_config(
         configuration,
