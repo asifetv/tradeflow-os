@@ -1,0 +1,422 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+import { Vendor } from "@/lib/types/vendor"
+import { vendorFormSchema, type VendorFormValues } from "@/lib/validations/vendor"
+import { useCreateVendor, useUpdateVendor } from "@/lib/hooks/use-vendors"
+
+interface VendorFormProps {
+  initialVendor?: Vendor
+}
+
+const COUNTRIES = [
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Saudi Arabia",
+  "UAE",
+  "Kuwait",
+  "Qatar",
+  "Bahrain",
+  "Oman",
+  "Germany",
+  "France",
+  "Netherlands",
+  "Italy",
+  "Spain",
+  "Japan",
+  "South Korea",
+  "China",
+  "India",
+  "Singapore",
+  "Thailand",
+  "Brazil",
+  "Mexico",
+  "Argentina",
+  "Other",
+]
+
+export function VendorForm({ initialVendor }: VendorFormProps) {
+  const router = useRouter()
+  const createMutation = useCreateVendor()
+  const updateMutation = useUpdateVendor(initialVendor?.id || "")
+
+  const normalizedDefaults = initialVendor ? {
+    ...initialVendor,
+    vendor_code: initialVendor.vendor_code,
+    company_name: initialVendor.company_name,
+    country: initialVendor.country,
+    certifications: initialVendor.certifications || undefined,
+    product_categories: initialVendor.product_categories || undefined,
+    credibility_score: initialVendor.credibility_score || undefined,
+    on_time_delivery_rate: initialVendor.on_time_delivery_rate ? initialVendor.on_time_delivery_rate * 100 : undefined,
+    quality_score: initialVendor.quality_score || undefined,
+    avg_lead_time_days: initialVendor.avg_lead_time_days || undefined,
+    primary_contact_name: initialVendor.primary_contact_name || undefined,
+    primary_contact_email: initialVendor.primary_contact_email || undefined,
+    primary_contact_phone: initialVendor.primary_contact_phone || undefined,
+    payment_terms: initialVendor.payment_terms || undefined,
+    is_active: initialVendor.is_active || true,
+    notes: initialVendor.notes || undefined,
+  } : {
+    vendor_code: "",
+    company_name: "",
+    country: "",
+    credibility_score: 50,
+    is_active: true,
+  }
+
+  const form = useForm<VendorFormValues>({
+    resolver: zodResolver(vendorFormSchema),
+    defaultValues: normalizedDefaults,
+  })
+
+  const isLoading = createMutation.isPending || updateMutation.isPending
+
+  async function onSubmit(data: VendorFormValues) {
+    try {
+      // Convert percentage back to decimal for on_time_delivery_rate
+      const submitData = {
+        ...data,
+        on_time_delivery_rate: data.on_time_delivery_rate ? data.on_time_delivery_rate / 100 : undefined,
+      }
+
+      if (initialVendor) {
+        await updateMutation.mutateAsync(submitData as any)
+        router.push(`/vendors/${initialVendor.id}`)
+      } else {
+        const newVendor = await createMutation.mutateAsync(submitData as any)
+        router.push(`/vendors/${newVendor.id}`)
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{initialVendor ? "Edit Vendor" : "Create New Vendor"}</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basic Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+              {initialVendor && (
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-600">Vendor Code</p>
+                  <p className="text-lg font-semibold text-slate-900">{initialVendor.vendor_code}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-6">
+                {!initialVendor && (
+                  <FormField
+                    control={form.control}
+                    name="vendor_code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vendor Code *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., VND-001" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="company_name"
+                  render={({ field }) => (
+                    <FormItem className={!initialVendor ? "" : "col-span-2"}>
+                      <FormLabel>Company Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Global Supplies Inc" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a country" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COUNTRIES.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Contact Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="primary_contact_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., John Smith" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="primary_contact_phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+1-555-0123" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="primary_contact_email"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Contact Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="john@supplier.com"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Performance Metrics Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="credibility_score"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Credibility Score (0-100)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="e.g., 75"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="on_time_delivery_rate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>On-Time Delivery Rate (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="e.g., 95"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="quality_score"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quality Score (0-100)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="e.g., 88"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="avg_lead_time_days"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Avg. Lead Time (Days)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="e.g., 30"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Business Terms Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Business Terms</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="payment_terms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Terms</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Net 45" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-200 p-4">
+                      <FormLabel className="mt-0">Active Vendor</FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value ?? true}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            <div>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any additional notes about this vendor..."
+                        className="min-h-24"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex gap-3">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {isLoading ? "Saving..." : initialVendor ? "Update Vendor" : "Create Vendor"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  )
+}
