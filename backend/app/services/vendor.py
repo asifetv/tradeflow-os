@@ -23,24 +23,47 @@ class VendorService:
         self.user_id = user_id
         self.company_id = company_id
 
+    async def _generate_vendor_code(self) -> str:
+        """
+        Generate a unique vendor code (VEND-001, VEND-002, etc.).
+
+        Returns:
+            Generated vendor code
+        """
+        # Get the maximum numeric part of existing vendor codes for this company
+        query = select(func.count(Vendor.id)).where(
+            (Vendor.deleted_at.is_(None)) & (Vendor.company_id == self.company_id)
+        )
+        result = await self.db.execute(query)
+        count = result.scalar() or 0
+
+        # Generate next code
+        next_num = count + 1
+        return f"VEND-{next_num:03d}"
+
     async def create_vendor(self, data: VendorCreate) -> VendorResponse:
         """Create a new vendor."""
+        # Auto-generate vendor_code if not provided
+        vendor_code = data.vendor_code
+        if not vendor_code:
+            vendor_code = await self._generate_vendor_code()
+
         # Check if vendor_code already exists in this company
         existing = await self.db.execute(
             select(Vendor).where(
                 and_(
-                    Vendor.vendor_code == data.vendor_code,
+                    Vendor.vendor_code == vendor_code,
                     Vendor.company_id == self.company_id,
                     Vendor.deleted_at.is_(None)
                 )
             )
         )
         if existing.scalars().first():
-            raise ValueError(f"Vendor code '{data.vendor_code}' already exists in this company")
+            raise ValueError(f"Vendor code '{vendor_code}' already exists in this company")
 
         vendor = Vendor(
             company_id=self.company_id,
-            vendor_code=data.vendor_code,
+            vendor_code=vendor_code,
             company_name=data.company_name,
             country=data.country,
             certifications=data.certifications,

@@ -5,7 +5,7 @@
 import * as z from "zod"
 
 export const vendorFormSchema = z.object({
-  vendor_code: z.string().min(1, "Vendor code is required"),
+  vendor_code: z.string().optional(),
   company_name: z.string().min(1, "Company name is required"),
   country: z.string().min(1, "Country is required"),
   certifications: z.array(z.string()).optional(),

@@ -7,7 +7,7 @@ from typing import Optional, List
 
 class VendorCreate(BaseModel):
     """Schema for creating a vendor."""
-    vendor_code: str = Field(..., min_length=1, max_length=50)
+    vendor_code: Optional[str] = Field(None, min_length=1, max_length=50)
     company_name: str = Field(..., min_length=1, max_length=200)
     country: str = Field(..., min_length=1, max_length=100)
     certifications: Optional[List[str]] = None

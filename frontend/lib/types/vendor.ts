@@ -20,7 +20,7 @@ export interface Vendor {
 }
 
 export interface VendorCreate {
-  vendor_code: string
+  vendor_code?: string
   company_name: string
   country: string
   certifications?: string[]
