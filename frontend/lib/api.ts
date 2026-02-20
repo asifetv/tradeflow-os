@@ -320,6 +320,20 @@ export const vendorApi = {
   }) => axiosInstance.get<VendorsListResponse>("/api/vendors", { params }),
 
   /**
+   * Advanced search vendors with smart filtering
+   */
+  searchAdvanced: (params?: {
+    q?: string
+    min_credibility?: number
+    max_credibility?: number
+    country?: string
+    category?: string
+    certification?: string
+    skip?: number
+    limit?: number
+  }) => axiosInstance.get<VendorsListResponse>("/api/vendors/advanced", { params }),
+
+  /**
    * Get a single vendor
    */
   get: (vendorId: string) =>

@@ -64,6 +64,48 @@ async def search_vendors(
     return result
 
 
+@router.get("/advanced", response_model=VendorListResponse)
+async def search_vendors_advanced(
+    q: str = Query(None, min_length=1, description="Keyword search on name/code"),
+    min_credibility: int = Query(None, ge=0, le=100, description="Minimum credibility score"),
+    max_credibility: int = Query(None, ge=0, le=100, description="Maximum credibility score"),
+    country: str = Query(None, description="Filter by country"),
+    category: str = Query(None, description="Filter by product category"),
+    certification: str = Query(None, description="Filter by certification"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: SessionDep = None,
+    current_user: CurrentUserDep = None,
+):
+    """
+    Advanced vendor search with smart filtering.
+
+    Supports:
+    - Keyword search (name, code)
+    - Credibility score range
+    - Country filtering
+    - Product category filtering
+    - Certification filtering
+    - Sorting by credibility (highest first)
+    """
+    service = VendorService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"],
+    )
+    result = await service.search_vendors_advanced(
+        query=q,
+        min_credibility=min_credibility,
+        max_credibility=max_credibility,
+        country=country,
+        category=category,
+        certification=certification,
+        skip=skip,
+        limit=limit,
+    )
+    return result
+
+
 @router.get("/{vendor_id}", response_model=VendorResponse)
 async def get_vendor(
     vendor_id: UUID,

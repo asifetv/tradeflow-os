@@ -224,6 +224,86 @@ class VendorService:
             items=[VendorResponse.from_orm(v) for v in vendors]
         )
 
+    async def search_vendors_advanced(
+        self,
+        query: Optional[str] = None,
+        min_credibility: Optional[int] = None,
+        max_credibility: Optional[int] = None,
+        country: Optional[str] = None,
+        category: Optional[str] = None,
+        certification: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> VendorListResponse:
+        """
+        Advanced search vendors with smart filtering.
+
+        Args:
+            query: Keyword search on name/code
+            min_credibility: Minimum credibility score (0-100)
+            max_credibility: Maximum credibility score (0-100)
+            country: Filter by country
+            category: Filter by product category (searches in list)
+            certification: Filter by certification (searches in list)
+            skip: Pagination offset
+            limit: Pagination limit
+        """
+        filters = [
+            Vendor.company_id == self.company_id,
+            Vendor.deleted_at.is_(None),
+            Vendor.is_active == True,
+        ]
+
+        # Keyword search
+        if query:
+            filters.append(
+                (Vendor.company_name.ilike(f"%{query}%")) |
+                (Vendor.vendor_code.ilike(f"%{query}%"))
+            )
+
+        # Credibility score range
+        if min_credibility is not None:
+            filters.append(Vendor.credibility_score >= min_credibility)
+        if max_credibility is not None:
+            filters.append(Vendor.credibility_score <= max_credibility)
+
+        # Country filter
+        if country:
+            filters.append(Vendor.country.ilike(f"%{country}%"))
+
+        # Product category filter (searches JSON array)
+        if category:
+            filters.append(
+                Vendor.product_categories.astext.ilike(f"%{category}%")
+            )
+
+        # Certification filter (searches JSON array)
+        if certification:
+            filters.append(
+                Vendor.certifications.astext.ilike(f"%{certification}%")
+            )
+
+        # Count total matching
+        count_result = await self.db.execute(
+            select(func.count(Vendor.id)).where(and_(*filters))
+        )
+        total = count_result.scalar() or 0
+
+        # Get paginated results sorted by credibility (best first)
+        result = await self.db.execute(
+            select(Vendor)
+            .where(and_(*filters))
+            .order_by(Vendor.credibility_score.desc(), Vendor.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        vendors = result.scalars().all()
+
+        return VendorListResponse(
+            total=total,
+            items=[VendorResponse.from_orm(v) for v in vendors]
+        )
+
     async def get_vendor_proposals(self, vendor_id: UUID) -> list:
         """Get all proposals from a vendor."""
         result = await self.db.execute(

@@ -22,6 +22,17 @@ const vendorKeys = {
     search?: string
     is_active?: boolean
   }) => [...vendorKeys.lists(), filters] as const,
+  searches: () => [...vendorKeys.all, "search"] as const,
+  search: (filters?: {
+    q?: string
+    min_credibility?: number
+    max_credibility?: number
+    country?: string
+    category?: string
+    certification?: string
+    skip?: number
+    limit?: number
+  }) => [...vendorKeys.searches(), filters] as const,
   details: () => [...vendorKeys.all, "detail"] as const,
   detail: (id: string) => [...vendorKeys.details(), id] as const,
 }
@@ -47,6 +58,28 @@ export function useVendors(
       return response.data
     },
     enabled: skip !== undefined && limit !== undefined,
+  })
+}
+
+/**
+ * Hook for advanced vendor search with smart filtering
+ */
+export function useVendorsAdvancedSearch(filters: {
+  q?: string
+  min_credibility?: number
+  max_credibility?: number
+  country?: string
+  category?: string
+  certification?: string
+  skip?: number
+  limit?: number
+}) {
+  return useQuery<VendorsListResponse>({
+    queryKey: vendorKeys.search(filters),
+    queryFn: async () => {
+      const response = await vendorApi.searchAdvanced(filters)
+      return response.data
+    },
   })
 }
 
