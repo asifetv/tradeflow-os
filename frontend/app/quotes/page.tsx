@@ -1,9 +1,16 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { QuotesTable } from "@/components/quotes/quotes-table"
+import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
+import { CustomerSelector } from "@/components/customers/customer-selector"
 
 export default function QuotesPage() {
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -27,9 +34,39 @@ export default function QuotesPage() {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        {/* Customer Filter */}
+        <Card className="bg-card border border-border shadow-sm">
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Filter by Customer:</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <CustomerSelector
+                    value={selectedCustomerId}
+                    onChange={(customerId) => {
+                      setSelectedCustomerId(customerId || null)
+                    }}
+                  />
+                </div>
+                {selectedCustomerId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedCustomerId(null)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quotes Table */}
         <div className="bg-card rounded-xl shadow-sm border border-border p-6">
-          <QuotesTable />
+          <QuotesTable customerId={selectedCustomerId} />
         </div>
       </div>
     </div>

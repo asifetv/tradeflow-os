@@ -1,34 +1,17 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { QuotesListResponse } from "@/lib/types/quote"
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+import { useQuotes } from "@/lib/hooks/use-quotes"
 
 interface CustomerQuotesProps {
   customerId: string
 }
 
 export function CustomerQuotes({ customerId }: CustomerQuotesProps) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["customer-quotes", customerId],
-    queryFn: async () => {
-      const response = await axios.get<QuotesListResponse>(
-        `${API_BASE_URL}/api/customers/${customerId}/quotes`,
-        {
-          headers: {
-            "X-User-ID": "550e8400-e29b-41d4-a716-446655440000",
-          },
-        }
-      )
-      return response.data
-    },
-  })
+  const { data, isLoading } = useQuotes(0, 50, customerId)
 
   if (isLoading) {
     return (

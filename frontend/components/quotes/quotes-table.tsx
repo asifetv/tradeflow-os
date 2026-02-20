@@ -7,10 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { useState } from "react"
 
-export function QuotesTable() {
+interface QuotesTableProps {
+  customerId?: string | null
+}
+
+export function QuotesTable({ customerId }: QuotesTableProps) {
   const [page, setPage] = useState(0)
   const pageSize = 50
-  const { data, isLoading } = useQuotes(page * pageSize, pageSize)
+  const { data, isLoading } = useQuotes(page * pageSize, pageSize, customerId || undefined)
 
   if (isLoading) {
     return (
