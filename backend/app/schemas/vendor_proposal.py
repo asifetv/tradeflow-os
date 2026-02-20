@@ -5,6 +5,24 @@ from uuid import UUID
 from typing import Optional, List, Literal
 
 
+class VendorBaseResponse(BaseModel):
+    """Simplified vendor info for proposal responses."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    vendor_code: str
+    company_name: str
+    country: str
+    credibility_score: int
+    on_time_delivery_rate: Optional[float]
+    quality_score: Optional[int]
+    avg_lead_time_days: Optional[int]
+    primary_contact_name: Optional[str]
+    primary_contact_email: Optional[str]
+    primary_contact_phone: Optional[str]
+    is_active: bool
+
+
 class VendorProposalCreate(BaseModel):
     """Schema for creating a vendor proposal."""
     vendor_id: UUID
@@ -42,6 +60,7 @@ class VendorProposalResponse(BaseModel):
     company_id: UUID
     deal_id: UUID
     vendor_id: UUID
+    vendor: Optional[VendorBaseResponse] = None
     status: str
     total_price: Optional[float]
     currency: str
