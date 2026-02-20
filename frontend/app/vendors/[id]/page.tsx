@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { useVendor, useDeleteVendor } from "@/lib/hooks/use-vendors"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,6 +35,12 @@ export default function VendorDetailPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Link href="/vendors" className="inline-block mb-4">
+        <Button variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Vendors
+        </Button>
+      </Link>
       <div className="flex items-center gap-4 justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">{vendor.company_name}</h1>
@@ -84,7 +91,7 @@ export default function VendorDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">Status</p>
-              <Badge variant={vendor.is_active ? "success" : "secondary"}>
+              <Badge variant={vendor.is_active ? "default" : "secondary"}>
                 {vendor.is_active ? "Active" : "Inactive"}
               </Badge>
             </div>
@@ -139,7 +146,7 @@ export default function VendorDetailPage() {
                 <p className="font-semibold">{vendor.quality_score}/100</p>
               </div>
             )}
-            {vendor.on_time_delivery_rate !== null && (
+            {vendor.on_time_delivery_rate !== undefined && vendor.on_time_delivery_rate !== null && (
               <div>
                 <p className="text-sm text-gray-600">On-Time Delivery Rate</p>
                 <p className="font-semibold">{(vendor.on_time_delivery_rate * 100).toFixed(1)}%</p>

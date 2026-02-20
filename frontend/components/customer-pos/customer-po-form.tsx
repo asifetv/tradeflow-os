@@ -64,7 +64,13 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
   const quoteId = useWatch({ control: form.control, name: "quote_id" })
 
   // Fetch quotes filtered by customer and deal
-  const { data: quotesData } = useQuotes(0, 50, customerId, dealId, undefined)
+  const { data: quotesData } = useQuotes(
+    0,
+    50,
+    customerId || undefined,
+    dealId || undefined,
+    undefined
+  )
   const quotes = quotesData?.quotes || []
 
   // Auto-populate when quote is selected - only when we have quotes loaded and a quoteId
@@ -208,8 +214,8 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                       <QuoteSelector
                         value={field.value}
                         onChange={field.onChange}
-                        customerId={customerId}
-                        dealId={dealId}
+                        customerId={customerId || undefined}
+                        dealId={dealId || undefined}
                       />
                     </FormControl>
                     <FormMessage />

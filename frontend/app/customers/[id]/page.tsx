@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { CustomerCard } from "@/components/customers/customer-card"
 import { CustomerDeals } from "@/components/customers/customer-deals"
 import { CustomerQuotes } from "@/components/customers/customer-quotes"
@@ -35,6 +36,12 @@ export default function CustomerDetailPage() {
   return (
     <>
       <div className="container mx-auto py-8">
+        <Link href="/customers" className="inline-block mb-4">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Customers
+          </Button>
+        </Link>
         <div className="flex items-center gap-4 justify-between mb-6">
           <h1 className="text-3xl font-bold">{customer?.company_name || "Customer"}</h1>
         <div className="flex gap-2">

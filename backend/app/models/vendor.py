@@ -18,7 +18,7 @@ class Vendor(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
 
     # Company Reference (multi-tenant)
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("company.id"), nullable=False, index=True)
 
     # Vendor Info
     vendor_code: Mapped[str] = mapped_column(String(50), nullable=False)

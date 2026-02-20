@@ -39,7 +39,8 @@ async def register(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Registration failed")
+        print(f"DEBUG: Registration error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 
 @router.post("/login", response_model=TokenResponse)

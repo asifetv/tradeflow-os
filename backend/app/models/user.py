@@ -1,27 +1,30 @@
-"""User model - application user within a company."""
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Index
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
+"""User model - represents a user account in a company."""
 from datetime import datetime
-from uuid import UUID, uuid4
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+from uuid import UUID
+
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Index, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
+if TYPE_CHECKING:
+    from app.models.company import Company
+
 
 class User(Base):
-    """Application user tied to a specific company."""
+    """User account entity (scoped to company)."""
 
-    __tablename__ = "users"
+    __tablename__ = "user"
 
     # Primary Key
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
 
     # Company Reference
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("company.id"), nullable=False, index=True)
 
     # Authentication
-    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Profile
@@ -29,26 +32,31 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), default="user")  # admin, sales, procurement, finance, quality, logistics
 
     # Status
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=func.now(),
-        nullable=False
+        nullable=False,
+        index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=func.now(),
-        onupdate=func.now()
+        onupdate=func.now(),
+        nullable=False
     )
 
+    # Relationships
+    company: Mapped["Company"] = relationship("Company", back_populates="users")
+
     __table_args__ = (
-        # Email globally unique (each email belongs to one person)
-        Index("ix_users_email", "email", unique=True),
-        Index("ix_users_is_active", "is_active"),
+        # Email unique within company (support same email across different companies)
+        Index("ix_user_email_company", "email", "company_id", unique=True),
+        Index("ix_user_company_id", "company_id"),
     )
 
     def __repr__(self) -> str:

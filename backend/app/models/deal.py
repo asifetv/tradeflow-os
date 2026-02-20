@@ -11,6 +11,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.models.vendor_proposal import VendorProposal
+    from app.models.company import Company
 
 
 class DealStatus(str, enum.Enum):
@@ -36,7 +37,7 @@ class Deal(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("company.id"), nullable=False, index=True)
     deal_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     # Status & Workflow

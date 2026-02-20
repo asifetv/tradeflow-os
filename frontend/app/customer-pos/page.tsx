@@ -1,11 +1,21 @@
 import { Button } from "@/components/ui/button"
 import { CustomerPosTable } from "@/components/customer-pos/customer-pos-table"
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, ArrowLeft } from "lucide-react"
 
 export default function CustomerPosPage() {
   return (
     <div className="min-h-screen bg-background">
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pt-4">
+        <Link href="/">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-8">

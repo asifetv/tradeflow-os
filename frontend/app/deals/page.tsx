@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { LayoutGrid, LayoutList, Plus, X } from "lucide-react"
+import { LayoutGrid, LayoutList, Plus, X, ArrowLeft } from "lucide-react"
 
 import { DealStatus } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
@@ -68,6 +68,16 @@ export default function DealsPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pt-4">
+        <Link href="/">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-8">

@@ -72,6 +72,7 @@ export interface VendorProposal {
   currency: string
   lead_time_days?: number
   payment_terms?: string
+  validity_date?: string
   specs_match?: boolean
   discrepancies?: Record<string, any>
   notes?: string
@@ -87,6 +88,7 @@ export interface VendorProposalCreate {
   currency?: string
   lead_time_days?: number
   payment_terms?: string
+  validity_date?: string
   specs_match?: boolean
   discrepancies?: Record<string, any>
   notes?: string
@@ -98,6 +100,7 @@ export interface VendorProposalUpdate {
   currency?: string
   lead_time_days?: number
   payment_terms?: string
+  validity_date?: string
   specs_match?: boolean
   discrepancies?: Record<string, any>
   notes?: string

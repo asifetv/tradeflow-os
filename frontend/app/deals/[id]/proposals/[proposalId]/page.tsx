@@ -52,22 +52,44 @@ export default function ProposalDetailPage() {
 
   const handleSaveEdits = async () => {
     try {
+      // Validate and parse numeric fields
+      const totalPrice = editData.total_price.trim() ? parseFloat(editData.total_price) : undefined
+      const leadTimeDays = editData.lead_time_days.trim() ? parseInt(editData.lead_time_days) : undefined
+
+      // Check for NaN values
+      if (totalPrice !== undefined && isNaN(totalPrice)) {
+        toast.error("Total Price must be a valid number")
+        return
+      }
+      if (leadTimeDays !== undefined && isNaN(leadTimeDays)) {
+        toast.error("Lead Time must be a valid number")
+        return
+      }
+
+      const updateData = {
+        total_price: totalPrice,
+        currency: editData.currency || undefined,
+        lead_time_days: leadTimeDays,
+        payment_terms: editData.payment_terms.trim() || undefined,
+        specs_match: editData.specs_match,
+        notes: editData.notes.trim() || undefined,
+      }
+
+      console.log("📤 Sending proposal update:")
+      console.log("   Proposal ID:", proposalId)
+      console.log("   Data:", JSON.stringify(updateData, null, 2))
+
       await updateProposal.mutateAsync({
         id: proposalId,
-        data: {
-          total_price: editData.total_price ? parseFloat(editData.total_price) : undefined,
-          currency: editData.currency,
-          lead_time_days: editData.lead_time_days ? parseInt(editData.lead_time_days) : undefined,
-          payment_terms: editData.payment_terms || undefined,
-          specs_match: editData.specs_match,
-          notes: editData.notes || undefined,
-        },
+        data: updateData,
       })
       toast.success("✅ Proposal updated successfully")
       setIsEditMode(false)
-    } catch (error) {
-      toast.error("Failed to update proposal")
-      console.error(error)
+    } catch (error: any) {
+      console.error("❌ Update error:", error)
+      console.error("Response data:", error.response?.data)
+      const errorMsg = error.response?.data?.detail || "Failed to update proposal"
+      toast.error(errorMsg)
     }
   }
 

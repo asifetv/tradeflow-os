@@ -28,7 +28,7 @@ class VendorProposal(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
 
     # Company Reference
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("company.id"), nullable=False, index=True)
 
     # Relationships
     deal_id: Mapped[UUID] = mapped_column(ForeignKey("deal.id"), nullable=False, index=True)

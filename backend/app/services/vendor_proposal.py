@@ -110,12 +110,15 @@ class VendorProposalService:
         if not proposal:
             raise ValueError("Proposal not found")
 
+        # Update only the fields that were provided
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(proposal, key, value)
 
         await self.db.flush()
-        return VendorProposalResponse.from_orm(proposal)
+
+        # Fetch and return the updated proposal using the get method to ensure proper serialization
+        return await self.get_proposal(proposal_id)
 
     async def delete_proposal(self, proposal_id: UUID) -> None:
         """Soft delete proposal."""
@@ -274,33 +277,24 @@ class VendorProposalService:
         Select a vendor for a deal.
         This marks the proposal as selected and rejects all other proposals for the same deal.
         """
-        # Get the proposal
+        # Get the proposal with vendor relationship loaded
         result = await self.db.execute(
-            select(VendorProposal).where(
+            select(VendorProposal)
+            .where(
                 and_(
                     VendorProposal.id == proposal_id,
                     VendorProposal.company_id == self.company_id,
                     VendorProposal.deleted_at.is_(None)
                 )
             )
+            .options(selectinload(VendorProposal.vendor))
         )
-        proposal = result.scalars().first()
+        proposal = result.unique().scalars().first()
         if not proposal:
             raise ValueError("Proposal not found")
 
         # Reject all other proposals for this deal
-        await self.db.execute(
-            select(VendorProposal)
-            .where(
-                and_(
-                    VendorProposal.deal_id == proposal.deal_id,
-                    VendorProposal.id != proposal_id,
-                    VendorProposal.company_id == self.company_id,
-                    VendorProposal.deleted_at.is_(None)
-                )
-            )
-        )
-        other_proposals = await self.db.execute(
+        other_proposals_result = await self.db.execute(
             select(VendorProposal).where(
                 and_(
                     VendorProposal.deal_id == proposal.deal_id,
@@ -310,11 +304,12 @@ class VendorProposalService:
                 )
             )
         )
-        for other in other_proposals.scalars().all():
+        for other in other_proposals_result.scalars().all():
             other.status = VendorProposalStatus.REJECTED
 
         # Mark selected proposal as selected
         proposal.status = VendorProposalStatus.SELECTED
         await self.db.flush()
 
-        return VendorProposalResponse.from_orm(proposal)
+        # Use get_proposal to safely fetch and serialize the updated proposal
+        return await self.get_proposal(proposal_id)

@@ -16,7 +16,7 @@ class Customer(Base):
 
     # IDs
     id: Mapped[UUID] = mapped_column(primary_key=True, default=lambda: __import__('uuid').uuid4())
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("company.id"), nullable=False, index=True)
     customer_code: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     # Company Details
@@ -55,7 +55,6 @@ class Customer(Base):
         DateTime(timezone=True),
         nullable=True
     )
-
 
     __table_args__ = (
         # Customer code unique per company

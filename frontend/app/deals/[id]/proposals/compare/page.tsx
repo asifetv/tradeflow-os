@@ -3,12 +3,13 @@
 import { useParams } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { vendorProposalApi } from "@/lib/api"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
-import { CheckCircle2, XCircle, AlertCircle, TrendingDown, Clock, Star } from "lucide-react"
+import { CheckCircle2, XCircle, AlertCircle, TrendingDown, Clock, Star, ArrowLeft } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -33,14 +34,21 @@ export default function ProposalComparisonPage() {
 
   const selectVendorMutation = useMutation({
     mutationFn: async (proposalId: string) => {
-      await vendorProposalApi.select(proposalId)
+      console.log("🔵 Selecting vendor proposal:", proposalId)
+      const response = await vendorProposalApi.select(proposalId)
+      console.log("✅ Select response:", response.data)
+      return response.data
     },
     onSuccess: () => {
+      console.log("🟢 Select mutation success, invalidating cache")
       queryClient.invalidateQueries({ queryKey: ["proposals", "compare", dealId] })
-      toast.success("Vendor selected successfully")
+      toast.success("✅ Vendor selected successfully")
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to select vendor")
+      console.error("🔴 Select mutation error:", error)
+      const errorMsg = error.response?.data?.detail || error.message || "Failed to select vendor"
+      console.error("Error message:", errorMsg)
+      toast.error(errorMsg)
     },
   })
 
@@ -102,6 +110,14 @@ export default function ProposalComparisonPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <Link href={`/deals/${dealId}?tab=proposals`}>
+        <Button variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Proposals
+        </Button>
+      </Link>
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Proposal Comparison</h1>

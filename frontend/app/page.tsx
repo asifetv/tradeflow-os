@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { BarChart3, Users, FileText, ShoppingCart, Plus } from "lucide-react"
+import { BarChart3, Users, FileText, ShoppingCart, Plus, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useCustomers } from "@/lib/hooks/use-customers"
 import { useDeals } from "@/lib/hooks/use-deals"
 import { useQuotes } from "@/lib/hooks/use-quotes"
 import { useCustomerPos } from "@/lib/hooks/use-customer-pos"
+import { useVendors } from "@/lib/hooks/use-vendors"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -40,6 +41,10 @@ export default function DashboardPage() {
     isAuthenticated ? 50 : undefined
   )
   const { data: posData } = useCustomerPos(
+    isAuthenticated ? 0 : undefined,
+    isAuthenticated ? 50 : undefined
+  )
+  const { data: vendorsData } = useVendors(
     isAuthenticated ? 0 : undefined,
     isAuthenticated ? 50 : undefined
   )
@@ -81,6 +86,14 @@ export default function DashboardPage() {
       color: "from-orange-500 to-orange-600",
       lightColor: "bg-orange-50",
     },
+    {
+      label: "Vendors",
+      value: vendorsData?.total || 0,
+      icon: Building2,
+      href: "/vendors",
+      color: "from-red-500 to-red-600",
+      lightColor: "bg-red-50",
+    },
   ]
 
   return (
@@ -100,6 +113,12 @@ export default function DashboardPage() {
                 <Button variant="outline" size="sm" className="gap-2">
                   <Plus className="h-4 w-4" />
                   New Customer
+                </Button>
+              </Link>
+              <Link href="/vendors/new">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Vendor
                 </Button>
               </Link>
               <Link href="/deals/new">
@@ -132,6 +151,7 @@ export default function DashboardPage() {
                 "Deals": "Track and manage business deals",
                 "Quotes": "Generate and manage price quotes",
                 "Purchase Orders": "Track customer purchase orders",
+                "Vendors": "Manage supplier relationships and proposals",
               }
 
               return (
@@ -254,6 +274,27 @@ export default function DashboardPage() {
                   <h3 className="font-semibold text-slate-900 text-center mb-2">New PO</h3>
                   <p className="text-sm text-slate-600 text-center flex-grow">Track a purchase order</p>
                   <div className="flex items-center justify-center gap-1 text-sm text-orange-600 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+                    <span>Create</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/vendors/new">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 bg-white overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-red-500 to-red-600"></div>
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-3 rounded-lg bg-red-50 group-hover:scale-110 transition-transform">
+                      <Plus className="h-6 w-6 text-red-600" />
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-slate-900 text-center mb-2">New Vendor</h3>
+                  <p className="text-sm text-slate-600 text-center flex-grow">Add a new supplier</p>
+                  <div className="flex items-center justify-center gap-1 text-sm text-red-600 font-medium mt-4 group-hover:translate-x-1 transition-transform">
                     <span>Create</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2, Star, Globe, User, Mail, Phone } from "lucide-react"
+import { Plus, Trash2, Star, Globe, User, Mail, Phone, ArrowLeft } from "lucide-react"
 
 export default function VendorsPage() {
   const router = useRouter()
@@ -42,6 +42,14 @@ export default function VendorsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <Link href="/">
+        <Button variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </Link>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

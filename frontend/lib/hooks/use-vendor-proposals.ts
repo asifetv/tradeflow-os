@@ -106,8 +106,15 @@ export function useUpdateVendorProposal(proposalId?: string) {
       id: string
       data: VendorProposalUpdate
     }) => {
-      const response = await vendorProposalApi.update(id, data)
-      return response.data
+      console.log("🔄 Mutation calling API with:", { id, data })
+      try {
+        const response = await vendorProposalApi.update(id, data)
+        console.log("✅ API response:", response.data)
+        return response.data
+      } catch (error: any) {
+        console.error("🔴 API error:", error.response?.status, error.response?.data)
+        throw error
+      }
     },
     onSuccess: (updatedProposal) => {
       // Update cache for this proposal

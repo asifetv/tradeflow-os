@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Home, ChevronDown } from "lucide-react"
+import { Home, ChevronDown, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useQuote, useDeleteQuote, useUpdateQuoteStatus, useQuoteActivity } from "@/lib/hooks/use-quotes"
 import { useRouter, useParams } from "next/navigation"
@@ -58,12 +58,13 @@ export default function QuoteDetailPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Link href="/quotes" className="inline-block mb-4">
+        <Button variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Quotes
+        </Button>
+      </Link>
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/" className="flex-shrink-0">
-          <Button variant="ghost" size="icon" className="hover:bg-slate-100">
-            <Home className="h-5 w-5 text-slate-600" />
-          </Button>
-        </Link>
         <div className="flex justify-between items-center flex-1">
           <h1 className="text-3xl font-bold">{quote?.title || "Quote"}</h1>
           <div className="flex gap-2">

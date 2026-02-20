@@ -32,7 +32,7 @@ export function CustomerDeals({ customerId }: CustomerDealsProps) {
     )
   }
 
-  const deals = (data?.items || data?.deals || []) as Deal[]
+  const deals = (data?.deals || []) as Deal[]
 
   if (deals.length === 0) {
     return (

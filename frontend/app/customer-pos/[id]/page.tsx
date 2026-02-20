@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Home } from "lucide-react"
+import { Home, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useCustomerPo, useDeleteCustomerPo, useUpdateCustomerPoStatus } from "@/lib/hooks/use-customer-pos"
 import { useRouter, useParams } from "next/navigation"
@@ -54,13 +54,14 @@ export default function CustomerPoDetailPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/" className="flex-shrink-0">
-          <Button variant="ghost" size="icon" className="hover:bg-slate-100">
-            <Home className="h-5 w-5 text-slate-600" />
-          </Button>
-        </Link>
-        <div className="flex justify-between items-center flex-1">
+      <Link href="/customer-pos" className="inline-block mb-4">
+        <Button variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Purchase Orders
+        </Button>
+      </Link>
+      <div className="flex items-center gap-4 justify-between mb-6">
+        <div>
           <h1 className="text-3xl font-bold">{customerPo?.po_number || "PO"}</h1>
           <div className="flex gap-2">
             {validTransitions.length > 0 && (

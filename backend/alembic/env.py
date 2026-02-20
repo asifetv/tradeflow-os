@@ -15,8 +15,16 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here for 'autogenerate' support
 from app.database import Base
-# Import all models to register them with Base.metadata
-import app.models  # noqa: F401
+# Import models individually to control what gets registered
+from app.models.deal import Deal  # noqa: F401
+from app.models.activity_log import ActivityLog  # noqa: F401
+from app.models.customer import Customer  # noqa: F401
+from app.models.quote import Quote  # noqa: F401
+from app.models.customer_po import CustomerPO  # noqa: F401
+from app.models.vendor import Vendor  # noqa: F401
+from app.models.vendor_proposal import VendorProposal  # noqa: F401
+from app.models.company import Company  # noqa: F401
+from app.models.user import User  # noqa: F401
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
