@@ -84,11 +84,12 @@ export function VendorForm({ initialVendor }: VendorFormProps) {
     is_active: initialVendor.is_active || true,
     notes: initialVendor.notes || undefined,
   } : {
-    vendor_code: "",
     company_name: "",
     country: "",
     credibility_score: 50,
     is_active: true,
+    certifications: undefined,
+    product_categories: undefined,
   }
 
   const form = useForm<VendorFormValues>({
@@ -319,6 +320,74 @@ export function VendorForm({ initialVendor }: VendorFormProps) {
                           onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Certifications & Categories Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Certifications & Categories</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="certifications"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Certifications</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="e.g., ISO 9001&#10;ISO 14001&#10;API 5L"
+                          className="min-h-20"
+                          {...field}
+                          value={
+                            Array.isArray(field.value) && field.value.length > 0
+                              ? field.value.join("\n")
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const certs = e.target.value
+                              .split("\n")
+                              .map((c) => c.trim())
+                              .filter((c) => c.length > 0);
+                            field.onChange(certs.length > 0 ? certs : undefined);
+                          }}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-gray-500 mt-1">Enter each certification on a separate line</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="product_categories"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Product Categories</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="e.g., Pipes&#10;Valves&#10;Fittings"
+                          className="min-h-20"
+                          {...field}
+                          value={
+                            Array.isArray(field.value) && field.value.length > 0
+                              ? field.value.join("\n")
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const categories = e.target.value
+                              .split("\n")
+                              .map((c) => c.trim())
+                              .filter((c) => c.length > 0);
+                            field.onChange(categories.length > 0 ? categories : undefined);
+                          }}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-gray-500 mt-1">Enter each category on a separate line</p>
                       <FormMessage />
                     </FormItem>
                   )}
