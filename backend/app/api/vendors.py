@@ -29,6 +29,41 @@ async def create_vendor(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("", response_model=VendorListResponse)
+async def list_vendors(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: SessionDep = None,
+    current_user: CurrentUserDep = None,
+):
+    """List all vendors for company."""
+    service = VendorService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"],
+    )
+    result = await service.list_vendors(skip=skip, limit=limit)
+    return result
+
+
+@router.get("/search", response_model=VendorListResponse)
+async def search_vendors(
+    q: str = Query(..., min_length=1),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: SessionDep = None,
+    current_user: CurrentUserDep = None,
+):
+    """Search vendors by name or code."""
+    service = VendorService(
+        db,
+        user_id=current_user["user_id"],
+        company_id=current_user["company_id"],
+    )
+    result = await service.search_vendors(q, skip=skip, limit=limit)
+    return result
+
+
 @router.get("/{vendor_id}", response_model=VendorResponse)
 async def get_vendor(
     vendor_id: UUID,
@@ -86,38 +121,3 @@ async def delete_vendor(
         return {"message": "Vendor deleted"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("", response_model=VendorListResponse)
-async def list_vendors(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    db: SessionDep = None,
-    current_user: CurrentUserDep = None,
-):
-    """List all vendors for company."""
-    service = VendorService(
-        db,
-        user_id=current_user["user_id"],
-        company_id=current_user["company_id"],
-    )
-    result = await service.list_vendors(skip=skip, limit=limit)
-    return result
-
-
-@router.get("/search", response_model=VendorListResponse)
-async def search_vendors(
-    q: str = Query(..., min_length=1),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    db: SessionDep = None,
-    current_user: CurrentUserDep = None,
-):
-    """Search vendors by name or code."""
-    service = VendorService(
-        db,
-        user_id=current_user["user_id"],
-        company_id=current_user["company_id"],
-    )
-    result = await service.search_vendors(q, skip=skip, limit=limit)
-    return result
