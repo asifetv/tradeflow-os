@@ -100,8 +100,9 @@ export default function VendorsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {vendorsData.items.map((vendor) => (
-            <Card key={vendor.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
+            <Link key={vendor.id} href={`/vendors/${vendor.id}`}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="line-clamp-2">{vendor.company_name}</CardTitle>
@@ -164,9 +165,11 @@ export default function VendorsPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Edit
-                  </Button>
+                  <Link href={`/vendors/${vendor.id}/edit`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Edit
+                    </Button>
+                  </Link>
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -197,7 +200,8 @@ export default function VendorsPage() {
                   </AlertDialog>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
