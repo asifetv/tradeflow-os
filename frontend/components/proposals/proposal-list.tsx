@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useVendorProposals, useVendorProposal, useUpdateVendorProposal } from "@/lib/hooks/use-vendor-proposals"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +14,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { toast } from "sonner"
 
 interface ProposalListProps {
   dealId: string
@@ -25,7 +34,29 @@ export function ProposalList({ dealId }: ProposalListProps) {
     skip: 0,
     limit: 100,
   })
-  const updateProposal = useUpdateVendorProposal("")
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
+
+  const handleStatusUpdate = async (proposalId: string, vendorName: string, newStatus: string) => {
+    try {
+      setUpdatingIds((prev) => new Set(prev).add(proposalId))
+      const updateMutation = useUpdateVendorProposal(proposalId)
+
+      await updateMutation.mutateAsync({
+        status: newStatus as any,
+      })
+
+      toast.success(`✅ Proposal from ${vendorName} marked as ${newStatus}`)
+    } catch (error) {
+      toast.error("Failed to update proposal status")
+      console.error(error)
+    } finally {
+      setUpdatingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(proposalId)
+        return next
+      })
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,9 +93,10 @@ export function ProposalList({ dealId }: ProposalListProps) {
   if (!proposalsData?.items?.length) {
     return (
       <Card>
-        <CardContent className="py-8">
-          <div className="text-center">
-            <p className="text-gray-600 mb-4">No proposals yet. Request proposals from vendors to get started.</p>
+        <CardContent className="py-12">
+          <div className="text-center space-y-4">
+            <div className="text-6xl">📬</div>
+            <p className="text-gray-600">No proposals yet. Request proposals from vendors to get started.</p>
             <Link href={`/deals/${dealId}/request-proposals`}>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
@@ -124,11 +156,73 @@ export function ProposalList({ dealId }: ProposalListProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Link href={`/deals/${dealId}/proposals/${proposal.id}`}>
-                    <Button size="sm" variant="outline">
-                      View
-                    </Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link href={`/deals/${dealId}/proposals/${proposal.id}`}>
+                      <Button size="sm" variant="outline">
+                        View
+                      </Button>
+                    </Link>
+
+                    {proposal.status === "requested" && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            ⋮
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(
+                                proposal.id,
+                                proposal.vendor?.company_name || "Vendor",
+                                "received"
+                              )
+                            }
+                            disabled={updatingIds.has(proposal.id)}
+                          >
+                            Mark as Received
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+
+                    {proposal.status === "received" && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            ⋮
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(
+                                proposal.id,
+                                proposal.vendor?.company_name || "Vendor",
+                                "selected"
+                              )
+                            }
+                            disabled={updatingIds.has(proposal.id)}
+                          >
+                            ✅ Select This Vendor
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(
+                                proposal.id,
+                                proposal.vendor?.company_name || "Vendor",
+                                "rejected"
+                              )
+                            }
+                            disabled={updatingIds.has(proposal.id)}
+                          >
+                            ❌ Reject
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
