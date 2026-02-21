@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { BarChart3, Users, FileText, ShoppingCart, Plus, Building2 } from "lucide-react"
@@ -11,21 +11,17 @@ import { useDeals } from "@/lib/hooks/use-deals"
 import { useQuotes } from "@/lib/hooks/use-quotes"
 import { useCustomerPos } from "@/lib/hooks/use-customer-pos"
 import { useVendors } from "@/lib/hooks/use-vendors"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token")
-    if (!token) {
+    if (!isAuthenticated) {
       router.push("/auth/login")
-      return
     }
-    setIsAuthenticated(true)
-    setIsLoading(false)
-  }, [router])
+  }, [isAuthenticated, router])
 
   // Only fetch data if authenticated
   const { data: customersData } = useCustomers(
@@ -49,7 +45,7 @@ export default function DashboardPage() {
     isAuthenticated ? 50 : undefined
   )
 
-  if (isLoading || !isAuthenticated) {
+  if (!isAuthenticated) {
     return null // Will redirect via useEffect
   }
 
