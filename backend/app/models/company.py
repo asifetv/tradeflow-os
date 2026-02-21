@@ -22,20 +22,19 @@ class Company(Base):
 
     # Company Info
     company_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    subdomain: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    subdomain: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     country: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Subscription
     plan_tier: Mapped[str] = mapped_column(String(50), default="trial")  # trial, basic, professional, enterprise
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     trial_ends_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=func.now(),
-        nullable=False,
-        index=True
+        nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -311,6 +311,148 @@ class TestVendorProposalService:
             )
 
 
+class TestVendorSearchAdvanced:
+    """Test M3-02: Advanced vendor search with smart filtering."""
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_by_credibility(self, test_db, sample_vendors):
+        """Test filtering vendors by minimum credibility score."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search vendors with minimum credibility of 80
+        result = await service.search_vendors_advanced(min_credibility=80)
+
+        # Should return only high-credibility vendors
+        assert result.total >= 1
+        assert all(v.credibility_score >= 80 for v in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_by_country(self, test_db, sample_vendors):
+        """Test filtering vendors by country."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search vendors in UAE
+        result = await service.search_vendors_advanced(country="UAE")
+
+        # Should return only UAE vendors
+        assert result.total >= 1
+        assert all("UAE" in v.country for v in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_by_category(self, test_db, sample_vendors):
+        """Test filtering vendors by product category."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search vendors with "Pipes" category
+        result = await service.search_vendors_advanced(category="Pipes")
+
+        # Should return vendors with Pipes category
+        assert result.total >= 1
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_by_certification(self, test_db, sample_vendors):
+        """Test filtering vendors by certification."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search vendors with ISO 9001 certification
+        result = await service.search_vendors_advanced(certification="ISO 9001")
+
+        # Should return vendors with ISO 9001
+        assert result.total >= 1
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_keyword(self, test_db, sample_vendors):
+        """Test keyword search in advanced search."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search by vendor name keyword
+        result = await service.search_vendors_advanced(q="Steel")
+
+        # Should find vendors matching keyword
+        assert result.total >= 1
+        assert any("Steel" in v.company_name for v in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_combined_filters(self, test_db, sample_vendors):
+        """Test combining multiple filters."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search with multiple filters: credibility + country + keyword
+        result = await service.search_vendors_advanced(
+            q="Steel",
+            min_credibility=70,
+            country="UAE",
+        )
+
+        # Should apply all filters
+        if result.items:
+            assert all(v.credibility_score >= 70 for v in result.items)
+            assert all("UAE" in v.country for v in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_credibility_range(self, test_db, sample_vendors):
+        """Test credibility score range filtering."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search vendors with credibility between 50 and 85
+        result = await service.search_vendors_advanced(
+            min_credibility=50,
+            max_credibility=85,
+        )
+
+        # Should return vendors in range
+        if result.items:
+            assert all(50 <= v.credibility_score <= 85 for v in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_sorted_by_credibility(self, test_db, sample_vendors):
+        """Test that results are sorted by credibility (highest first)."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Get all vendors sorted by credibility
+        result = await service.search_vendors_advanced()
+
+        # Verify sorting: credibility should be descending
+        if len(result.items) > 1:
+            for i in range(len(result.items) - 1):
+                assert result.items[i].credibility_score >= result.items[i + 1].credibility_score
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_pagination(self, test_db, sample_vendors):
+        """Test pagination in advanced search."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Get first page (limit 2)
+        result = await service.search_vendors_advanced(limit=2)
+
+        # Should respect limit
+        assert len(result.items) <= 2
+
+    @pytest.mark.asyncio
+    async def test_search_vendors_advanced_no_results(self, test_db, sample_vendors):
+        """Test advanced search with filters that return no results."""
+        company_id = sample_vendors[0].company_id
+        service = VendorService(test_db, company_id=company_id)
+
+        # Search with filters that won't match any vendor
+        result = await service.search_vendors_advanced(
+            min_credibility=100,  # No vendor has 100% credibility
+        )
+
+        # Should return empty results
+        assert result.total == 0
+        assert len(result.items) == 0
+
+
 class TestVendorProposalAPI:
     """Test vendor and proposal API endpoints."""
 

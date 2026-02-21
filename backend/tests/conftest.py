@@ -3,7 +3,7 @@ import pytest
 import pytest_asyncio
 from uuid import uuid4
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import StaticPool, NullPool
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -19,34 +19,46 @@ from app.models.vendor import Vendor
 from app.models.vendor_proposal import VendorProposal, VendorProposalStatus
 
 
-# Test database URL - use StaticPool for testing
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-
 @pytest_asyncio.fixture
 async def test_db():
     """Create test database and tables."""
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        echo=False,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    # Use a unique file for each test to avoid conflicts with StaticPool
+    import tempfile
+    import os
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Create a temporary file for the test database
+    fd, db_path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
 
-    async_session = async_sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
-    )
+    try:
+        TEST_DATABASE_URL = f"sqlite+aiosqlite:///{db_path}"
 
-    async with async_session() as session:
-        yield session
+        engine = create_async_engine(
+            TEST_DATABASE_URL,
+            echo=False,
+            connect_args={"check_same_thread": False},
+            poolclass=NullPool,
+        )
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        async with engine.begin() as conn:
+            # Create fresh tables
+            await conn.run_sync(Base.metadata.create_all)
 
-    await engine.dispose()
+        async_session = async_sessionmaker(
+            engine, class_=AsyncSession, expire_on_commit=False
+        )
+
+        async with async_session() as session:
+            yield session
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+
+        await engine.dispose()
+    finally:
+        # Clean up temporary database file
+        if os.path.exists(db_path):
+            os.unlink(db_path)
 
 
 @pytest.fixture
@@ -85,11 +97,15 @@ async def sample_company(test_db):
 @pytest_asyncio.fixture
 async def sample_user(test_db, sample_company):
     """Create a sample user for testing."""
+    from app.services.auth import AuthService
+    auth_service = AuthService(test_db)
+
+    # Use proper password hashing
     user = User(
         id=uuid4(),
         company_id=sample_company.id,
         email="test@example.com",
-        password_hash="hashed_password",
+        password_hash=auth_service._hash_password("TestPassword123"),
         full_name="Test User",
         role="user",
         is_active=True
@@ -131,6 +147,21 @@ async def sample_deal(test_db, sample_company):
 
 
 @pytest_asyncio.fixture
+async def sample_company_2(test_db):
+    """Create a second sample company for multi-tenancy testing."""
+    company = Company(
+        id=uuid4(),
+        company_name="Another Company",
+        subdomain="another",
+        country="UK",
+        is_active=True
+    )
+    test_db.add(company)
+    await test_db.flush()
+    return company
+
+
+@pytest_asyncio.fixture
 async def sample_deals(test_db, sample_company):
     """Create multiple sample deals for testing."""
     from uuid import uuid4
@@ -169,6 +200,36 @@ def user_id():
 
 
 @pytest_asyncio.fixture
+async def sample_deal_2(test_db, sample_company_2):
+    """Create a deal for the second company."""
+    deal = Deal(
+        id=uuid4(),
+        company_id=sample_company_2.id,
+        deal_number="TEST-DEAL-002",
+        description="Test deal for second company",
+        customer_rfq_ref="RFQ-TEST-002",
+        status=DealStatus.RFQ_RECEIVED,
+        currency="GBP",
+        total_value=150000.0,
+        total_cost=90000.0,
+        estimated_margin_pct=40.0,
+        line_items=[
+            {
+                "description": "Steel Pipe",
+                "material_spec": "BS 3604",
+                "quantity": 50,
+                "unit": "MT",
+                "required_delivery_date": "2024-04-15",
+            }
+        ],
+    )
+    test_db.add(deal)
+    await test_db.flush()
+    await test_db.refresh(deal)
+    return deal
+
+
+@pytest_asyncio.fixture
 async def sample_customer(test_db, sample_company):
     """Create a sample customer for testing."""
     customer = Customer(
@@ -183,6 +244,29 @@ async def sample_customer(test_db, sample_company):
         primary_contact_phone="+966-1-234-5678",
         payment_terms="Net 60",
         credit_limit=500000.0,
+        is_active=True,
+    )
+    test_db.add(customer)
+    await test_db.flush()
+    await test_db.refresh(customer)
+    return customer
+
+
+@pytest_asyncio.fixture
+async def sample_customer_2(test_db, sample_company_2):
+    """Create a customer for the second company."""
+    customer = Customer(
+        id=uuid4(),
+        company_id=sample_company_2.id,
+        customer_code="TEST-CUST-002",
+        company_name="UK Trading Ltd.",
+        country="United Kingdom",
+        city="London",
+        primary_contact_name="James Smith",
+        primary_contact_email="james@uktrading.uk",
+        primary_contact_phone="+44-20-1234-5678",
+        payment_terms="Net 45",
+        credit_limit=600000.0,
         is_active=True,
     )
     test_db.add(customer)
