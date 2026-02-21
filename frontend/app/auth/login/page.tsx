@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { authApi, axiosInstance } from "@/lib/api"
 import { useAuth } from "@/lib/hooks/use-auth"
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const { setAuth } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -47,6 +49,7 @@ export default function LoginPage() {
 
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true)
+    setServerError(null) // Clear previous errors
     try {
       const subdomain = values.subdomain.toLowerCase().trim()
 
@@ -78,18 +81,24 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error("Login error:", error)
 
+      let errorMessage = "Login failed. Please try again."
+
       // Detailed error handling
       if (error.response?.status === 401) {
-        const detail = error.response?.data?.detail
-        if (detail?.includes("company")) {
-          toast.error("Company not found. Did you use the correct subdomain?")
+        const detail = error.response?.data?.detail || ""
+        if (detail.toLowerCase().includes("company")) {
+          errorMessage = "Company not found. Did you use the correct subdomain?"
         } else {
-          toast.error("Invalid email or password. Please check your credentials.")
+          errorMessage = "Invalid email or password. Please check your credentials."
         }
-      } else {
-        const message = error.response?.data?.detail || error.message || "Login failed"
-        toast.error(message)
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.message) {
+        errorMessage = error.message
       }
+
+      setServerError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -105,6 +114,14 @@ export default function LoginPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Error Alert */}
+              {serverError && (
+                <div className="flex gap-3 p-3 bg-red-50 border border-red-300 rounded-md">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-red-800 font-medium text-sm">{serverError}</div>
+                </div>
+              )}
+
               <FormField
                 control={form.control}
                 name="subdomain"

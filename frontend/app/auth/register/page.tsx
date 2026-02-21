@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { authApi } from "@/lib/api"
 import { useAuth } from "@/lib/hooks/use-auth"
@@ -30,6 +31,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const { setAuth } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -44,6 +46,7 @@ export default function RegisterPage() {
 
   async function onSubmit(values: RegisterFormValues) {
     setIsLoading(true)
+    setServerError(null) // Clear previous errors
     try {
       const response = await authApi.register(values)
       const { access_token, user, company } = response.data
@@ -65,20 +68,45 @@ export default function RegisterPage() {
       console.error("Response data:", error.response?.data)
       console.error("Response status:", error.response?.status)
 
+      let errorMessage = "Registration failed. Please try again."
+      let fieldError: "subdomain" | "email" | null = null
+
       // Detailed error handling
       if (error.response?.status === 400) {
-        const detail = error.response?.data?.detail
-        console.error("Detail message:", detail)
-        if (detail?.includes("Email")) {
-          toast.error("This email is already registered. Please login or use a different email.")
-        } else if (detail?.includes("Subdomain")) {
-          toast.error("This subdomain is already taken. Please choose another one.")
+        const detail = error.response?.data?.detail || ""
+
+        if (detail.toLowerCase().includes("subdomain")) {
+          errorMessage = "This subdomain is already taken. Please choose another one."
+          fieldError = "subdomain"
+          form.setError("subdomain", {
+            type: "manual",
+            message: "This subdomain is already taken",
+          })
+        } else if (detail.toLowerCase().includes("email")) {
+          errorMessage = "This email is already registered. Please login or use a different email."
+          fieldError = "email"
+          form.setError("email", {
+            type: "manual",
+            message: "This email is already registered",
+          })
         } else {
-          toast.error(detail || "Registration failed. Please try again.")
+          errorMessage = detail || "Registration failed. Please try again."
         }
-      } else {
-        toast.error(error.response?.data?.detail || error.message || "Registration failed. Please try again.")
+      } else if (error.response?.status === 422) {
+        // Validation error
+        const validationErrors = error.response?.data?.detail
+        if (Array.isArray(validationErrors)) {
+          errorMessage = validationErrors[0]?.msg || "Invalid input. Please check your fields."
+        } else {
+          errorMessage = "Invalid input. Please check your fields."
+        }
+      } else if (error.message) {
+        errorMessage = error.message
       }
+
+      // Display error prominently
+      setServerError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -94,6 +122,14 @@ export default function RegisterPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Error Alert */}
+              {serverError && (
+                <div className="flex gap-3 p-3 bg-red-50 border border-red-300 rounded-md">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-red-800 font-medium text-sm">{serverError}</div>
+                </div>
+              )}
+
               {/* Company Information */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-gray-700">Company Information</h3>
