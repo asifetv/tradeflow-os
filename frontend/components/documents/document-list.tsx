@@ -30,7 +30,8 @@ import {
   getCategoryLabel,
   getStatusLabel,
 } from "@/lib/types/document"
-import { useDocuments, useDeleteDocument, useDownloadUrl } from "@/lib/hooks/use-documents"
+import { useDocuments, useDeleteDocument } from "@/lib/hooks/use-documents"
+import { documentApi } from "@/lib/api"
 import { ExtractedDataModal } from "./extracted-data-modal"
 
 interface DocumentListProps {
@@ -60,7 +61,6 @@ export function DocumentList({
   } = useDocuments(entityType, entityId, category, skip, limit, true)
 
   const { mutate: deleteDocument, isPending: isDeleting } = useDeleteDocument()
-  const { data: downloadUrl, refetch: refetchDownloadUrl } = useDownloadUrl("", false)
 
   const documents = listData?.items || []
   const total = listData?.total || 0
@@ -70,10 +70,14 @@ export function DocumentList({
   }
 
   const handleDownload = async (doc: DocumentListItem) => {
-    refetchDownloadUrl()
-    // In a real app, you'd open the download URL or fetch it first
-    // For now, we'll just log it
-    console.log("Download requested for:", doc.original_filename)
+    try {
+      const response = await documentApi.getDownloadUrl(doc.id)
+      const downloadUrl = response.data.url
+      // Open the download URL in a new tab
+      window.open(downloadUrl, "_blank")
+    } catch (error) {
+      console.error("Failed to get download URL:", error)
+    }
   }
 
   const handleViewData = (doc: Document) => {
