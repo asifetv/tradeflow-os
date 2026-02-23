@@ -104,11 +104,29 @@ async def upload_document(
             tags=tag_list,
         )
 
-        # Detach object from session to avoid lazy-loading errors
-        db.expunge(document)
-
-        # Now it's safe to access attributes and convert to response
-        return DocumentResponse.model_validate(document)
+        # Return response using model_construct to avoid ORM lazy-loading issues
+        return DocumentResponse.model_construct(
+            id=document.id,
+            company_id=document.company_id,
+            entity_type=document.entity_type,
+            entity_id=document.entity_id,
+            category=document.category,
+            storage_bucket=document.storage_bucket,
+            storage_key=document.storage_key,
+            original_filename=document.original_filename,
+            file_size_bytes=document.file_size_bytes,
+            mime_type=document.mime_type,
+            extracted_text=document.extracted_text,
+            parsed_data=document.parsed_data,
+            status=document.status,
+            ai_confidence_score=document.ai_confidence_score,
+            error_message=document.error_message,
+            description=document.description,
+            tags=document.tags,
+            created_at=document.created_at,
+            updated_at=document.updated_at,
+            deleted_at=document.deleted_at,
+        )
 
     except HTTPException:
         raise
@@ -217,11 +235,29 @@ async def get_document(
             detail="Document not found",
         )
 
-    # Detach object from session to avoid lazy-loading errors
-    db.expunge(document)
-
-    # Now it's safe to access attributes and convert to response
-    return DocumentResponse.model_validate(document)
+    # Return response using model_construct to avoid ORM lazy-loading issues
+    return DocumentResponse.model_construct(
+        id=document.id,
+        company_id=document.company_id,
+        entity_type=document.entity_type,
+        entity_id=document.entity_id,
+        category=document.category,
+        storage_bucket=document.storage_bucket,
+        storage_key=document.storage_key,
+        original_filename=document.original_filename,
+        file_size_bytes=document.file_size_bytes,
+        mime_type=document.mime_type,
+        extracted_text=document.extracted_text,
+        parsed_data=document.parsed_data,
+        status=document.status,
+        ai_confidence_score=document.ai_confidence_score,
+        error_message=document.error_message,
+        description=document.description,
+        tags=document.tags,
+        created_at=document.created_at,
+        updated_at=document.updated_at,
+        deleted_at=document.deleted_at,
+    )
 
 
 @router.get("/{document_id}/download", response_model=DocumentDownloadUrlResponse)
