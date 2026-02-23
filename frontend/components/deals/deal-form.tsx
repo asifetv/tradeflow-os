@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Trash2, AlertCircle } from "lucide-react"
+import { Trash2, Check } from "lucide-react"
 
 import { Deal } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,6 @@ import { dealFormSchema, DealFormValues } from "@/lib/validations/deal"
 import { useCreateDeal, useUpdateDeal } from "@/lib/hooks/use-deals"
 import { CustomerSelector } from "@/components/customers/customer-selector"
 import { mapRFQToDeal, applyExtractedDataToForm } from "@/lib/utils/extract-to-form"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface DealFormProps {
   initialDeal?: Deal
@@ -127,12 +126,15 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
     <Card>
       <CardContent className="pt-6">
         {showDataAppliedAlert && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <AlertCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              ✓ Extracted data has been applied to the form. Please review and adjust as needed.
-            </AlertDescription>
-          </Alert>
+          <div className="mb-6 p-4 border border-green-200 bg-green-50 rounded-lg flex items-start gap-3">
+            <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-green-900">Data Applied Successfully</p>
+              <p className="text-sm text-green-800 mt-1">
+                Extracted data has been applied to the form. Please review and adjust as needed.
+              </p>
+            </div>
+          </div>
         )}
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
           {/* Basic Info */}
