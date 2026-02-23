@@ -36,7 +36,6 @@ class DocumentService:
         self.company_id = company_id
         self.user_id = user_id
         self.storage_service = StorageService()
-        self.parsing_service = DocumentParsingService()
         self.ai_service = AIExtractionService()
 
     async def upload_and_process_document(
@@ -125,7 +124,7 @@ class DocumentService:
             # Step 3: Extract text
             logger.info("Extracting text from document...")
             try:
-                extracted_text = self.parsing_service.extract_text(file_content, mime_type)
+                extracted_text = DocumentParsingService.extract_text(file_content, mime_type)
                 document.extracted_text = extracted_text
                 logger.info(f"Extracted {len(extracted_text)} characters")
             except DocumentParsingError as e:

@@ -1,0 +1,61 @@
+REQUEST FOR QUOTATION - TEMPLATE
+
+Date: _____________________
+RFQ Reference: _____________________
+From: _____________________
+Contact: _____________________
+Email: _____________________
+Phone: _____________________
+
+REQUIRED ITEMS:
+
+Item 1: _____________________
+  Specifications: _____________________
+  Quantity: _____ Unit: _____
+  Unit of Measure: _____________________
+  Total Cost: _____________________
+
+Item 2: _____________________
+  Specifications: _____________________
+  Quantity: _____ Unit: _____
+  Unit of Measure: _____________________
+  Total Cost: _____________________
+
+Item 3: _____________________
+  Specifications: _____________________
+  Quantity: _____ Unit: _____
+  Unit of Measure: _____________________
+  Total Cost: _____________________
+
+DELIVERY REQUIREMENTS:
+
+Required Delivery Date: _____________________
+Delivery Location: _____________________
+Shipping Terms (CIF/FOB/DDP): _____________________
+Special Handling: _____________________
+
+SPECIFICATIONS & CERTIFICATIONS:
+
+Required Certifications: _____________________
+Quality Standards: _____________________
+Testing Requirements: _____________________
+Documentation: _____________________
+
+COMMERCIAL TERMS:
+
+Payment Terms: _____________________
+Quote Validity: _____ days
+Currency: _____________________
+Total Project Value: _____________________
+
+NOTES & SPECIAL REQUIREMENTS:
+
+_________________________________________________________________________
+_________________________________________________________________________
+_________________________________________________________________________
+
+Issued by: _____________________
+Authorized Signature: _____________________
+Date: _____________________
+
+PLEASE SUBMIT QUOTATION BY: _____________________

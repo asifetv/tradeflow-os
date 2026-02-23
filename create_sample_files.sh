@@ -11,7 +11,7 @@ echo "════════════════════════�
 echo ""
 
 # Create output directory
-OUTPUT_DIR="/tmp/m4_test_samples"
+OUTPUT_DIR="./m4_test_samples"
 mkdir -p "$OUTPUT_DIR"
 
 echo "✓ Creating sample files in: $OUTPUT_DIR"

@@ -1,0 +1,52 @@
+MILL TEST CERTIFICATE
+
+Product: Steel Pipe Schedule 40
+Size: 4-inch OD x 0.237" Wall
+Material: ASTM A53B Grade B
+Heat Number: QA-2026-5847
+
+MANUFACTURER: Quality Steel Mills
+Batch Date: February 15, 2026
+Quantity: 100 pieces (2500 kg total)
+
+CHEMICAL COMPOSITION ANALYSIS:
+
+Carbon (C): 0.22% (Max 0.30%)
+Manganese (Mn): 0.89% (Max 1.35%)
+Phosphorus (P): 0.018% (Max 0.04%)
+Sulfur (S): 0.008% (Max 0.04%)
+Silicon (Si): 0.24% (Max 0.40%)
+Iron (Fe): Balance
+
+Result: PASS - All elements within specification
+
+MECHANICAL PROPERTIES TEST:
+
+Tensile Strength: 405 MPa (Min 330 MPa)
+Yield Strength: 290 MPa (Min 240 MPa)
+Elongation: 31% (Min 25%)
+Hardness (HB): 125 (Max 160)
+
+Result: PASS - All properties within ASTM A53B specification
+
+HYDROSTATIC TEST:
+  Pressure: 5.0 MPa (3x yield strength)
+  Duration: 5 seconds
+  Result: PASS - No leakage detected
+
+SURFACE INSPECTION:
+  Result: PASS - Free from cracks, seams, and laps
+
+DIMENSIONAL INSPECTION:
+  OD: 4.000" ± 0.062" ✓
+  Wall: 0.237" ± 0.020" ✓
+  Length: 6000mm ± 5mm ✓
+
+FINAL RESULT: APPROVED FOR SHIPMENT
+
+Tested by: Laboratory Technician - Karim Hassan
+Date: February 16, 2026
+Authorized by: Quality Manager - Dr. Mohammad Ali
+
+This certificate confirms that the material has been tested and
+complies with all requirements of ASTM A53B specification.

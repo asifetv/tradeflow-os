@@ -1,0 +1,57 @@
+COMMERCIAL INVOICE
+
+Invoice Number: INV-2026-00547
+Invoice Date: February 23, 2026
+Due Date: March 25, 2026
+
+FROM:
+  Quality Steel Suppliers LLC
+  Industrial Zone, Port Rashid, Dubai
+  UAE
+
+TO:
+  ABC Corporation
+  123 Business Park
+  Dubai, UAE
+
+BILL OF LADING: BL-2026-12345
+PURCHASE ORDER: PO-2026-001
+
+LINE ITEMS:
+
+1. Steel Pipe Schedule 40 (4-inch OD)
+   Description: Carbon Steel Pipes, ASTM A53B
+   Quantity: 100 pieces
+   Unit Price: $385.00
+   Amount: $38,500.00
+
+2. Elbows (90-degree, 4-inch)
+   Description: Carbon Steel 90-degree Elbows
+   Quantity: 20 pieces
+   Unit Price: $125.00
+   Amount: $2,500.00
+
+3. Flanges (Slip-on, 4-inch, 300 PSI)
+   Description: Carbon Steel Slip-on Flanges
+   Quantity: 15 pieces
+   Unit Price: $95.00
+   Amount: $1,425.00
+
+Subtotal: $42,425.00
+Freight (CIF): $1,200.00
+Insurance: $400.00
+
+Subtotal: $44,025.00
+Tax (5%): $2,201.25
+
+TOTAL AMOUNT DUE: $46,226.25 USD
+
+Payment Terms: Net 30 days
+Bank Details: Emirates Bank, Account # 1234567890
+
+Shipped via: Ocean Freight
+Expected Delivery: March 9, 2026
+Container Number: CONTAINER-2026-5678
+
+Authorized by: Ahmed Al-Mansouri, Commercial Manager
+Date: February 23, 2026

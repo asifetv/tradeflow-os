@@ -1,0 +1,47 @@
+CERTIFICATE OF COMPLIANCE
+
+Certificate Number: ISO-2024-001234
+Issued to: Quality Steel Suppliers LLC
+License Number: QM-2024-9876
+
+CERTIFICATE TYPE: ISO 9001:2015
+Quality Management System
+
+Scope of Certification:
+  Manufacturer of steel pipes, fittings, and flanges
+  Product categories: Carbon steel, alloy steel
+  Processes: Rolling, welding, testing, packaging
+
+Issue Date: January 15, 2024
+Expiry Date: January 14, 2027
+Status: VALID
+
+Issued by: International Standards Organization (ISO)
+Certification Body: DNV GL Business Assurance
+
+AUDIT FINDINGS:
+  Overall Assessment: COMPLIANT
+  Process Compliance: 100%
+  Documentation: Complete
+  Last Audit: January 10, 2024
+
+APPLICABLE STANDARDS:
+  - ISO 9001:2015 - Quality Management Systems
+  - ISO 14001:2015 - Environmental Management
+  - ISO 45001:2018 - Occupational Health and Safety
+
+REQUIREMENTS FOR CONTINUED CERTIFICATION:
+  - Annual surveillance audits
+  - Three-yearly recertification
+  - Maintain quality procedures
+  - Document and investigate nonconformities
+
+This certificate confirms that the organization operates a quality
+management system in accordance with ISO 9001:2015 standards and
+has been assessed and found to be in conformity with all requirements.
+
+Authorized Signature: _______________
+Certification Body Manager
+Date: January 15, 2024
+
+VALID ONLY WITH HOLOGRAPHIC SECURITY FEATURES

@@ -1,0 +1,56 @@
+REQUEST FOR QUOTATION
+
+Date: February 23, 2026
+From: ABC Corporation
+Contact: John Smith
+Email: john.smith@abccorp.com
+Phone: +1-555-0123
+
+REQUIRED ITEMS:
+
+1. Steel Pipe Schedule 40
+   - Size: 4-inch OD
+   - Material: Carbon Steel
+   - Grade: A53B
+   - Quantity: 100 pieces
+   - Unit Price: TBD
+   - Total: TBD
+
+2. Elbows (90-degree)
+   - Size: 4-inch
+   - Material: Carbon Steel
+   - Quantity: 20 pieces
+   - Unit Price: TBD
+   - Total: TBD
+
+3. Flanges (slip-on)
+   - Size: 4-inch
+   - Rating: 300 PSI
+   - Quantity: 15 pieces
+   - Unit Price: TBD
+   - Total: TBD
+
+DELIVERY REQUIREMENTS:
+- Required Delivery Date: April 15, 2026
+- Delivery Location: Dubai Port, UAE
+- Shipping Terms: CIF
+
+SPECIFICATIONS:
+- All materials must have mill test certificates
+- Certifications: ISO 9001, API 5L
+- Inspection: Third-party inspection required
+
+TOTAL PROJECT VALUE: $45,000 USD
+
+Payment Terms: Net 30 days
+Quote Validity: 30 days from submission
+
+Please provide detailed quotation with:
+- Unit pricing breakdown
+- Total cost with shipping
+- Lead time for delivery
+- Warranty terms
+- Compliance documentation
+
+Prepared by: John Smith, Procurement Manager
+ABC Corporation
