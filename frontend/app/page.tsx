@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { BarChart3, Users, FileText, ShoppingCart, Plus, Building2 } from "lucide-react"
+import { BarChart3, Users, FileText, ShoppingCart, Plus, Building2, File } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useCustomers } from "@/lib/hooks/use-customers"
@@ -90,6 +90,14 @@ export default function DashboardPage() {
       color: "from-red-500 to-red-600",
       lightColor: "bg-red-50",
     },
+    {
+      label: "Documents",
+      value: 0,
+      icon: File,
+      href: "/documents",
+      color: "from-indigo-500 to-indigo-600",
+      lightColor: "bg-indigo-50",
+    },
   ]
 
   return (
@@ -148,6 +156,7 @@ export default function DashboardPage() {
                 "Quotes": "Generate and manage price quotes",
                 "Purchase Orders": "Track customer purchase orders",
                 "Vendors": "Manage supplier relationships and proposals",
+                "Documents": "Manage company documents and files with AI extraction",
               }
 
               return (

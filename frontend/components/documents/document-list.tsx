@@ -1,0 +1,272 @@
+"use client"
+
+import { useState } from "react"
+import {
+  DownloadIcon,
+  Trash2Icon,
+  AlertCircleIcon,
+  CheckCircleIcon,
+  LoaderIcon,
+  FileIcon,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Document,
+  DocumentListItem,
+  DocumentCategory,
+  DocumentStatus,
+  formatFileSize,
+  getCategoryLabel,
+  getStatusLabel,
+} from "@/lib/types/document"
+import { useDocuments, useDeleteDocument, useDownloadUrl } from "@/lib/hooks/use-documents"
+
+interface DocumentListProps {
+  entityType?: string
+  entityId?: string
+  category?: DocumentCategory
+  disabled?: boolean
+}
+
+export function DocumentList({
+  entityType,
+  entityId,
+  category,
+  disabled = false,
+}: DocumentListProps) {
+  const [skip, setSkip] = useState(0)
+  const limit = 10
+
+  const {
+    data: listData,
+    isLoading,
+    isError,
+  } = useDocuments(entityType, entityId, category, skip, limit, true)
+
+  const { mutate: deleteDocument, isPending: isDeleting } = useDeleteDocument()
+  const { data: downloadUrl, refetch: refetchDownloadUrl } = useDownloadUrl("", false)
+
+  const documents = listData?.items || []
+  const total = listData?.total || 0
+
+  const handleDelete = (documentId: string) => {
+    deleteDocument(documentId)
+  }
+
+  const handleDownload = async (doc: DocumentListItem) => {
+    refetchDownloadUrl()
+    // In a real app, you'd open the download URL or fetch it first
+    // For now, we'll just log it
+    console.log("Download requested for:", doc.original_filename)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="flex items-center justify-center gap-2">
+          <LoaderIcon className="h-5 w-5 animate-spin text-gray-400" />
+          <p className="text-gray-600">Loading documents...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <p className="text-sm text-red-800">Failed to load documents</p>
+      </div>
+    )
+  }
+
+  if (documents.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
+        <FileIcon className="mx-auto mb-2 h-10 w-10 text-gray-300" />
+        <p className="text-gray-600">No documents yet</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Upload a document to get started
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
+      <h3 className="text-lg font-semibold">Documents ({total})</h3>
+
+      <div className="space-y-3">
+        {documents.map((doc) => {
+          const status = doc.status as DocumentStatus
+          const statusLabel = getStatusLabel(status)
+          const hasConfidence = doc.ai_confidence_score !== null
+
+          return (
+            <div
+              key={doc.id}
+              className="flex items-start justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+            >
+              <div className="flex-1 min-w-0">
+                {/* File info */}
+                <div className="flex items-start gap-3">
+                  <FileIcon className="mt-1 h-5 w-5 flex-shrink-0 text-gray-400" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {doc.original_filename}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(doc.file_size_bytes)} •{" "}
+                      {getCategoryLabel(doc.category)} •{" "}
+                      {new Date(doc.created_at).toLocaleDateString()}
+                    </p>
+
+                    {doc.description && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        {doc.description}
+                      </p>
+                    )}
+
+                    {doc.tags && doc.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {doc.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status and confidence */}
+                <div className="mt-3 flex items-center gap-2">
+                  <div className={`rounded-full px-2 py-1 text-xs font-medium ${statusLabel.color}`}>
+                    <div className="flex items-center gap-1">
+                      {status === DocumentStatus.COMPLETED && (
+                        <CheckCircleIcon className="h-3 w-3" />
+                      )}
+                      {status === DocumentStatus.PROCESSING && (
+                        <LoaderIcon className="h-3 w-3 animate-spin" />
+                      )}
+                      {status === DocumentStatus.FAILED && (
+                        <AlertCircleIcon className="h-3 w-3" />
+                      )}
+                      {statusLabel.label}
+                    </div>
+                  </div>
+
+                  {hasConfidence && (
+                    <div className="text-xs text-gray-600">
+                      Confidence: {(doc.ai_confidence_score! * 100).toFixed(0)}%
+                    </div>
+                  )}
+
+                  {doc.error_message && (
+                    <div
+                      className="text-xs text-red-600"
+                      title={doc.error_message}
+                    >
+                      Error: {doc.error_message.slice(0, 30)}...
+                    </div>
+                  )}
+                </div>
+
+                {/* Parsed data preview */}
+                {doc.parsed_data && Object.keys(doc.parsed_data).length > 0 && (
+                  <div className="mt-2 rounded-sm bg-white p-2 text-xs text-gray-600">
+                    <p className="font-medium text-gray-700">Extracted data:</p>
+                    <p className="truncate">
+                      {JSON.stringify(doc.parsed_data).slice(0, 100)}...
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="ml-4 flex flex-shrink-0 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(doc)}
+                  disabled={disabled}
+                  title="Download document"
+                >
+                  <DownloadIcon className="h-4 w-4" />
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                      disabled={disabled || isDeleting}
+                      title="Delete document"
+                    >
+                      <Trash2Icon className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogTitle>Delete Document?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will delete {doc.original_filename}. This action cannot
+                      be undone.
+                    </AlertDialogDescription>
+                    <div className="flex justify-end gap-3">
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(doc.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </div>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Pagination */}
+      {total > limit && (
+        <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+          <p className="text-sm text-gray-600">
+            Showing {skip + 1} to {Math.min(skip + limit, total)} of {total}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSkip(Math.max(0, skip - limit))}
+              disabled={skip === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSkip(skip + limit)}
+              disabled={skip + limit >= total}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

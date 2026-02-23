@@ -7,6 +7,9 @@ import { useVendor, useDeleteVendor } from "@/lib/hooks/use-vendors"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { DocumentUpload } from "@/components/documents/document-upload"
+import { DocumentList } from "@/components/documents/document-list"
+import { DocumentCategory } from "@/lib/types/document"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -226,6 +229,26 @@ export default function VendorDetailPage() {
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* Documents Section */}
+      <div className="mt-8 space-y-4">
+        <h2 className="text-2xl font-bold">Certifications & Documents</h2>
+        <div className="grid grid-cols-1 gap-6">
+          <DocumentUpload
+            category={DocumentCategory.CERTIFICATE}
+            entityType="Vendor"
+            entityId={id}
+            onUploadSuccess={() => {
+              // List will auto-refresh via React Query
+            }}
+          />
+          <DocumentList
+            entityType="Vendor"
+            entityId={id}
+            category={DocumentCategory.CERTIFICATE}
+          />
+        </div>
       </div>
     </div>
   )

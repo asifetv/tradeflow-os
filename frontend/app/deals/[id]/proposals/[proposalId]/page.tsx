@@ -14,6 +14,9 @@ import { ArrowLeft, CheckCircle2, XCircle, Edit2, Save, X } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { toast } from "sonner"
+import { DocumentUpload } from "@/components/documents/document-upload"
+import { DocumentList } from "@/components/documents/document-list"
+import { DocumentCategory } from "@/lib/types/document"
 
 export default function ProposalDetailPage() {
   const params = useParams()
@@ -423,6 +426,24 @@ export default function ProposalDetailPage() {
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* Documents Section */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Documents</h2>
+        <DocumentUpload
+          category={DocumentCategory.VENDOR_PROPOSAL}
+          entityType="VendorProposal"
+          entityId={proposalId}
+          onUploadSuccess={() => {
+            // List will auto-refresh via React Query
+          }}
+        />
+        <DocumentList
+          entityType="VendorProposal"
+          entityId={proposalId}
+          category={DocumentCategory.VENDOR_PROPOSAL}
+        />
       </div>
 
       {/* Actions */}

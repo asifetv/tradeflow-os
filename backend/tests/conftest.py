@@ -199,6 +199,24 @@ def user_id():
     return str(uuid4())
 
 
+@pytest.fixture(autouse=True)
+def mock_storage_service(monkeypatch):
+    """Mock StorageService to prevent MinIO connection in tests."""
+    from unittest.mock import Mock, patch
+
+    # Mock StorageService for all tests
+    def mock_storage_init(self):
+        self.bucket_name = "documents"
+        self.client = Mock()
+        self.client.put_object = Mock(return_value=None)
+        self.client.get_object = Mock(return_value=Mock(read=lambda: b"file content", close=lambda: None))
+        self.client.get_presigned_download_url = Mock(return_value="http://presigned-url")
+        self.client.remove_object = Mock(return_value=None)
+        self.client.bucket_exists = Mock(return_value=True)
+
+    monkeypatch.setattr("app.services.storage.StorageService.__init__", mock_storage_init)
+
+
 @pytest_asyncio.fixture
 async def sample_deal_2(test_db, sample_company_2):
     """Create a deal for the second company."""

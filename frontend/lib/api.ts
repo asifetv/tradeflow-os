@@ -49,6 +49,12 @@ import {
   VendorProposalsListResponse,
   ProposalComparisonResponse,
 } from "./types/vendor"
+import {
+  Document,
+  DocumentCategory,
+  DocumentListResponse,
+  DocumentDownloadUrlResponse,
+} from "./types/document"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -420,6 +426,64 @@ export const vendorProposalApi = {
       `/api/vendor-proposals/${proposalId}/select`,
       {}
     ),
+}
+
+/**
+ * Document API methods
+ */
+export const documentApi = {
+  /**
+   * Upload and process a document
+   */
+  upload: (formData: FormData) =>
+    axiosInstance.post<Document>("/api/documents/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+
+  /**
+   * List documents attached to entities
+   */
+  list: (params?: {
+    skip?: number
+    limit?: number
+    entity_type?: string
+    entity_id?: string
+    category?: DocumentCategory
+  }) => axiosInstance.get<DocumentListResponse>("/api/documents", { params }),
+
+  /**
+   * List company-level documents
+   */
+  listCompanyDocuments: (params?: {
+    skip?: number
+    limit?: number
+    category?: DocumentCategory
+  }) =>
+    axiosInstance.get<DocumentListResponse>("/api/documents/company-docs", {
+      params,
+    }),
+
+  /**
+   * Get a single document
+   */
+  get: (documentId: string) =>
+    axiosInstance.get<Document>(`/api/documents/${documentId}`),
+
+  /**
+   * Get presigned download URL
+   */
+  getDownloadUrl: (documentId: string) =>
+    axiosInstance.get<DocumentDownloadUrlResponse>(
+      `/api/documents/${documentId}/download`
+    ),
+
+  /**
+   * Delete a document (soft delete)
+   */
+  delete: (documentId: string) =>
+    axiosInstance.delete(`/api/documents/${documentId}`),
 }
 
 export { axiosInstance }

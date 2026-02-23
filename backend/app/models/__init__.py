@@ -8,6 +8,7 @@ from app.models.quote import Quote, QuoteStatus
 from app.models.customer_po import CustomerPO, CustomerPOStatus
 from app.models.vendor import Vendor
 from app.models.vendor_proposal import VendorProposal, VendorProposalStatus
+from app.models.document import Document, DocumentCategory, DocumentStatus
 
 __all__ = [
     "Deal",
@@ -23,4 +24,7 @@ __all__ = [
     "Vendor",
     "VendorProposal",
     "VendorProposalStatus",
+    "Document",
+    "DocumentCategory",
+    "DocumentStatus",
 ]

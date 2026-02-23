@@ -16,10 +16,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from "@/components/deals/status-badge"
 import { ActivityTimeline } from "@/components/deals/activity-timeline"
 import { ProposalList } from "@/components/proposals/proposal-list"
+import { DocumentUpload } from "@/components/documents/document-upload"
+import { DocumentList } from "@/components/documents/document-list"
 import { useDeal, useDealActivity, useDeleteDeal, useUpdateDealStatus } from "@/lib/hooks/use-deals"
 import { useCustomer } from "@/lib/hooks/use-customers"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DealStatus as DealStatusEnum } from "@/lib/types/deal"
+import { DocumentCategory } from "@/lib/types/document"
 import { format } from "date-fns"
 
 const VALID_STATUS_TRANSITIONS: Record<DealStatus, DealStatus[]> = {
@@ -192,6 +195,7 @@ export default function DealDetailPage() {
           <TabsTrigger value="line-items">Line Items ({deal.line_items.length})</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -392,6 +396,23 @@ export default function DealDetailPage() {
 
         <TabsContent value="proposals">
           <ProposalList dealId={dealId} />
+        </TabsContent>
+
+        {/* Documents Tab */}
+        <TabsContent value="documents" className="space-y-6">
+          <DocumentUpload
+            category={DocumentCategory.RFQ}
+            entityType="Deal"
+            entityId={dealId}
+            onUploadSuccess={() => {
+              // List will auto-refresh via React Query
+            }}
+          />
+          <DocumentList
+            entityType="Deal"
+            entityId={dealId}
+            category={DocumentCategory.RFQ}
+          />
         </TabsContent>
       </Tabs>
     </div>
