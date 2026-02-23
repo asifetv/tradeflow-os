@@ -292,6 +292,15 @@ async def get_download_url(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
+    except Exception as e:
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        traceback.print_exc()
+        print(f"❌ DOWNLOAD URL ERROR: {error_msg}", flush=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate download URL: {error_msg}",
+        )
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
