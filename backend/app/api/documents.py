@@ -104,10 +104,8 @@ async def upload_document(
             tags=tag_list,
         )
 
-        # Detach from session to avoid greenlet issues during response serialization
-        db.expunge(document)
-
-        return document
+        # Convert ORM object to Pydantic schema to avoid greenlet issues
+        return DocumentResponse.model_validate(document)
 
     except HTTPException:
         raise
@@ -216,7 +214,8 @@ async def get_document(
             detail="Document not found",
         )
 
-    return document
+    # Convert ORM object to Pydantic schema
+    return DocumentResponse.model_validate(document)
 
 
 @router.get("/{document_id}/download", response_model=DocumentDownloadUrlResponse)
