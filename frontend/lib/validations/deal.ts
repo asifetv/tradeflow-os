@@ -7,9 +7,9 @@ import { DealStatus } from "@/lib/types/deal"
 
 export const lineItemSchema = z.object({
   description: z.string().min(1, "Description is required"),
-  material_spec: z.string().min(1, "Material spec is required"),
+  material_spec: z.string().optional().nullable(),
   quantity: z.number().nonnegative("Quantity must be non-negative"),
-  unit: z.string().min(1, "Unit is required"),
+  unit: z.string().optional().nullable(),
   unit_price: z.number().optional().nullable(),
   unit_total: z.number().optional().nullable(),
   required_delivery_date: z.string().min(1, "Delivery date is required"),
