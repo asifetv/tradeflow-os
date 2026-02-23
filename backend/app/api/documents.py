@@ -104,6 +104,9 @@ async def upload_document(
             tags=tag_list,
         )
 
+        # Detach from session to avoid greenlet issues during response serialization
+        db.expunge(document)
+
         return document
 
     except HTTPException:
