@@ -4,7 +4,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { LayoutGrid, LayoutList, Plus, X, ArrowLeft } from "lucide-react"
 
@@ -40,6 +40,17 @@ export default function DealsPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const limit = 50
 
+  // Memoize query params to prevent infinite refetches
+  const queryParams = useMemo(
+    () => ({
+      skip: page * limit,
+      limit,
+      status: undefined,
+      customer_id: selectedCustomerId ?? undefined,
+    }),
+    [page, limit, selectedCustomerId]
+  )
+
   // Load visible stages from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("dealStageVisibility")
@@ -60,10 +71,10 @@ export default function DealsPage() {
 
   // Fetch deals with customer filter
   const { data, isLoading } = useDeals(
-    page * limit,
-    limit,
-    undefined,
-    selectedCustomerId || undefined
+    queryParams.skip,
+    queryParams.limit,
+    queryParams.status,
+    queryParams.customer_id
   )
 
   return (
