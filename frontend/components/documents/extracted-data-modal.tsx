@@ -66,12 +66,12 @@ export function ExtractedDataModal({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Extracted Data from {document.original_filename}</DialogTitle>
-          <DialogDescription className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2">
             <Badge variant={document.ai_confidence_score > 0.7 ? "default" : "secondary"}>
               Confidence: {(document.ai_confidence_score * 100).toFixed(0)}%
             </Badge>
             <span className="text-xs text-muted-foreground">{document.category}</span>
-          </DialogDescription>
+          </div>
         </DialogHeader>
 
         {/* Extracted Data Preview */}
