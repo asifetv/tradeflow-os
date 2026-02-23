@@ -129,7 +129,7 @@ class StorageService:
         """
         try:
             expiry = timedelta(minutes=expiry_minutes)
-            url = self.client.get_presigned_download_url(
+            url = self.client.presigned_get_object(
                 bucket_name=self.bucket_name,
                 object_name=storage_key,
                 expires=expiry,
