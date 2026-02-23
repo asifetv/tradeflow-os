@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Trash2 } from "lucide-react"
+import { Trash2, AlertCircle } from "lucide-react"
 
 import { Deal } from "@/lib/types/deal"
 import { Button } from "@/components/ui/button"
@@ -19,15 +19,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { dealFormSchema, DealFormValues } from "@/lib/validations/deal"
 import { useCreateDeal, useUpdateDeal } from "@/lib/hooks/use-deals"
 import { CustomerSelector } from "@/components/customers/customer-selector"
+import { mapRFQToDeal, applyExtractedDataToForm } from "@/lib/utils/extract-to-form"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface DealFormProps {
   initialDeal?: Deal
   onSubmit?: (data: DealFormValues) => void
+  extractedRFQData?: any
 }
 
-export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormProps) {
+export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQData }: DealFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showDataAppliedAlert, setShowDataAppliedAlert] = useState(false)
 
   const createDealMutation = useCreateDeal()
   const updateDealMutation = useUpdateDeal(initialDeal?.id || "")
@@ -60,11 +64,39 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
         },
   })
 
-  const { control, handleSubmit, formState: { errors } } = form
+  const { control, handleSubmit, formState: { errors }, setValue } = form
   const { fields, append, remove } = useFieldArray({
     control,
     name: "line_items",
   })
+
+  // Apply extracted RFQ data to form
+  useEffect(() => {
+    if (extractedRFQData) {
+      const mappedData = mapRFQToDeal(extractedRFQData)
+      const currentValues = form.getValues()
+      const updatedValues = applyExtractedDataToForm(currentValues, mappedData)
+
+      // Update all form fields
+      Object.keys(mappedData).forEach((key) => {
+        const value = (mappedData as any)[key]
+        if (key === "line_items" && Array.isArray(value)) {
+          // Clear existing line items and add new ones
+          while (fields.length > 0) {
+            remove(0)
+          }
+          value.forEach((item) => {
+            append(item)
+          })
+        } else {
+          setValue(key as keyof DealFormValues, value)
+        }
+      })
+
+      setShowDataAppliedAlert(true)
+      setTimeout(() => setShowDataAppliedAlert(false), 5000)
+    }
+  }, [extractedRFQData])
 
   const handleFormSubmit = async (data: DealFormValues) => {
     setIsSubmitting(true)
@@ -94,6 +126,14 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback }: DealFormPr
   return (
     <Card>
       <CardContent className="pt-6">
+        {showDataAppliedAlert && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <AlertCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              ✓ Extracted data has been applied to the form. Please review and adjust as needed.
+            </AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
           {/* Basic Info */}
           <div>

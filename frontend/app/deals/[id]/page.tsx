@@ -76,6 +76,16 @@ export default function DealDetailPage() {
     await updateStatusMutation.mutateAsync({ status: newStatus })
   }
 
+  const handleUseExtractedData = (extractedData: any, category: string) => {
+    // Store extracted data in sessionStorage to pass to edit page
+    sessionStorage.setItem(
+      `deal_extracted_data_${dealId}`,
+      JSON.stringify(extractedData)
+    )
+    // Navigate to edit page
+    router.push(`/deals/${dealId}/edit`)
+  }
+
   if (isDealLoading) {
     return <div className="flex items-center justify-center p-8">Loading...</div>
   }
@@ -412,6 +422,7 @@ export default function DealDetailPage() {
             entityType="Deal"
             entityId={dealId}
             category={DocumentCategory.RFQ}
+            onUseExtractedData={handleUseExtractedData}
           />
         </TabsContent>
       </Tabs>

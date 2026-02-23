@@ -161,6 +161,9 @@ class DocumentService:
             logger.info(f"Document processing complete: {document.id}")
 
             await self.db.commit()
+
+            # Refresh to load all fields (especially timestamps set by DB defaults)
+            await self.db.refresh(document)
             return document
 
         except Exception as e:
@@ -180,6 +183,8 @@ class DocumentService:
                 document.error_message = str(e)[:1000]
                 await self.db.flush()
                 await self.db.commit()
+                # Refresh to load all fields
+                await self.db.refresh(document)
                 return document
             else:
                 raise

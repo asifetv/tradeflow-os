@@ -8,6 +8,8 @@ import {
   CheckCircleIcon,
   LoaderIcon,
   FileIcon,
+  Eye,
+  Import,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,12 +31,14 @@ import {
   getStatusLabel,
 } from "@/lib/types/document"
 import { useDocuments, useDeleteDocument, useDownloadUrl } from "@/lib/hooks/use-documents"
+import { ExtractedDataModal } from "./extracted-data-modal"
 
 interface DocumentListProps {
   entityType?: string
   entityId?: string
   category?: DocumentCategory
   disabled?: boolean
+  onUseExtractedData?: (data: any, category: DocumentCategory | string) => void
 }
 
 export function DocumentList({
@@ -42,8 +46,11 @@ export function DocumentList({
   entityId,
   category,
   disabled = false,
+  onUseExtractedData,
 }: DocumentListProps) {
   const [skip, setSkip] = useState(0)
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const limit = 10
 
   const {
@@ -67,6 +74,17 @@ export function DocumentList({
     // In a real app, you'd open the download URL or fetch it first
     // For now, we'll just log it
     console.log("Download requested for:", doc.original_filename)
+  }
+
+  const handleViewData = (doc: Document) => {
+    setSelectedDocument(doc)
+    setIsModalOpen(true)
+  }
+
+  const handleUseData = (extractedData: any) => {
+    if (selectedDocument && onUseExtractedData) {
+      onUseExtractedData(extractedData, selectedDocument.category)
+    }
   }
 
   if (isLoading) {
@@ -196,6 +214,39 @@ export function DocumentList({
 
               {/* Actions */}
               <div className="ml-4 flex flex-shrink-0 gap-2">
+                {doc.status === DocumentStatus.COMPLETED &&
+                  doc.parsed_data &&
+                  Object.keys(doc.parsed_data).length > 0 && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewData(doc as Document)}
+                        disabled={disabled}
+                        title="View extracted data"
+                        className="gap-1"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
+
+                      {onUseExtractedData && (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            handleUseData(doc.parsed_data)
+                          }}
+                          disabled={disabled}
+                          title="Use extracted data to populate form"
+                          className="gap-1"
+                        >
+                          <Import className="h-4 w-4" />
+                          Use Data
+                        </Button>
+                      )}
+                    </>
+                  )}
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -266,6 +317,19 @@ export function DocumentList({
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Extracted Data Modal */}
+      {selectedDocument && (
+        <ExtractedDataModal
+          document={selectedDocument}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false)
+            setSelectedDocument(null)
+          }}
+          onUseData={handleUseData}
+        />
       )}
     </div>
   )
