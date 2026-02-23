@@ -12,8 +12,9 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3001"
     COMPANY_NAME: str = "TradeFlow OS"
 
-    # Database
-    DATABASE_URL: str = "postgresql+asyncpg://tradeflow:tradeflow@localhost:5432/tradeflow"
+    # Database - Use SQLite for development/testing, PostgreSQL for production
+    # For production, override with: DATABASE_URL=postgresql+asyncpg://user:pass@host/db
+    DATABASE_URL: str = "sqlite+aiosqlite:///./tradeflow_dev.db"
     DATABASE_POOL_SIZE: int = 10
     DATABASE_MAX_OVERFLOW: int = 5
     DATABASE_POOL_RECYCLE: int = 3600

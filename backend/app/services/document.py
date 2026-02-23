@@ -165,6 +165,15 @@ class DocumentService:
 
         except Exception as e:
             # Step 5b: Mark as failed
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"\n{'='*70}", flush=True)
+            print(f"❌ DOCUMENT PROCESSING ERROR", flush=True)
+            print(f"{'='*70}", flush=True)
+            print(f"Error Type: {type(e).__name__}", flush=True)
+            print(f"Error Message: {str(e)}", flush=True)
+            print(f"Traceback:\n{error_trace}", flush=True)
+            print(f"{'='*70}\n", flush=True)
             logger.error(f"Document processing failed: {e}", exc_info=True)
             if "document" in locals():
                 document.status = DocumentStatus.FAILED

@@ -111,7 +111,11 @@ async def upload_document(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        traceback.print_exc()  # Print to console
+        print(f"❌ DOCUMENT UPLOAD ERROR: {error_msg}", flush=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_msg)
 
 
 @router.get("", response_model=DocumentListResponse)
