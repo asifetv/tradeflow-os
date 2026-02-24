@@ -423,6 +423,7 @@ export default function DealDetailPage() {
             entityId={dealId}
             category={DocumentCategory.RFQ}
             onUseExtractedData={handleUseExtractedData}
+            currentCustomerName={customer?.company_name}
           />
         </TabsContent>
       </Tabs>

@@ -40,6 +40,7 @@ interface DocumentListProps {
   category?: DocumentCategory
   disabled?: boolean
   onUseExtractedData?: (data: any, category: DocumentCategory | string) => void
+  currentCustomerName?: string
 }
 
 export function DocumentList({
@@ -48,10 +49,13 @@ export function DocumentList({
   category,
   disabled = false,
   onUseExtractedData,
+  currentCustomerName,
 }: DocumentListProps) {
   const [skip, setSkip] = useState(0)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [pendingExtractedData, setPendingExtractedData] = useState<any>(null)
+  const [showCustomerMismatchDialog, setShowCustomerMismatchDialog] = useState(false)
   const limit = 10
 
   const {
@@ -86,9 +90,32 @@ export function DocumentList({
   }
 
   const handleUseData = (extractedData: any) => {
-    if (selectedDocument && onUseExtractedData) {
-      onUseExtractedData(extractedData, selectedDocument.category)
+    // Check for customer name mismatch
+    const extractedCustomerName = extractedData.customer_name?.trim().toLowerCase()
+    const currentCustomer = currentCustomerName?.trim().toLowerCase()
+
+    if (
+      extractedCustomerName &&
+      currentCustomer &&
+      extractedCustomerName !== currentCustomer
+    ) {
+      // Store the data and show confirmation dialog
+      setPendingExtractedData(extractedData)
+      setShowCustomerMismatchDialog(true)
+    } else {
+      // No mismatch, proceed immediately
+      if (selectedDocument && onUseExtractedData) {
+        onUseExtractedData(extractedData, selectedDocument.category)
+      }
     }
+  }
+
+  const handleConfirmMismatch = (proceed: boolean) => {
+    if (proceed && pendingExtractedData && selectedDocument && onUseExtractedData) {
+      onUseExtractedData(pendingExtractedData, selectedDocument.category)
+    }
+    setShowCustomerMismatchDialog(false)
+    setPendingExtractedData(null)
   }
 
   if (isLoading) {
@@ -321,6 +348,49 @@ export function DocumentList({
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Customer Mismatch Confirmation Dialog */}
+      {showCustomerMismatchDialog && (
+        <AlertDialog open={showCustomerMismatchDialog} onOpenChange={setShowCustomerMismatchDialog}>
+          <AlertDialogContent>
+            <AlertDialogTitle className="text-yellow-900 flex items-center gap-2">
+              <AlertCircleIcon className="h-5 w-5 text-yellow-600" />
+              Customer Name Mismatch
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-yellow-800">
+              <div className="space-y-3">
+                <p>
+                  The customer name extracted from the document does not match the customer for this deal:
+                </p>
+                <div className="bg-yellow-50 p-3 rounded space-y-2">
+                  <div>
+                    <span className="font-semibold">Extracted from document:</span>
+                    <p className="text-yellow-900">
+                      {pendingExtractedData?.customer_name}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Deal customer:</span>
+                    <p className="text-yellow-900">{currentCustomerName}</p>
+                  </div>
+                </div>
+                <p className="text-sm">
+                  Please verify that you want to proceed with this data. You can edit the customer name in the form if needed.
+                </p>
+              </div>
+            </AlertDialogDescription>
+            <div className="flex justify-end gap-3 pt-4">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleConfirmMismatch(true)}
+                className="bg-yellow-600 hover:bg-yellow-700"
+              >
+                Proceed Anyway
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
 
       {/* Extracted Data Modal */}
