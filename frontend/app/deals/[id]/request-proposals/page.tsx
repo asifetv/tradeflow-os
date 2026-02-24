@@ -8,11 +8,20 @@ import { ArrowLeft, Search, Filter, CheckCircle2, Loader2 } from "lucide-react"
 import { useVendorsAdvancedSearch } from "@/lib/hooks/use-vendors"
 import { useCreateVendorProposal } from "@/lib/hooks/use-vendor-proposals"
 import { useDeal } from "@/lib/hooks/use-deals"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
 interface SearchFilters {
@@ -35,6 +44,9 @@ export default function RequestProposalsPage() {
   const [filters, setFilters] = useState<SearchFilters>({})
   const [selectedVendorIds, setSelectedVendorIds] = useState<Set<string>>(new Set())
   const [isRequesting, setIsRequesting] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [requestedVendors, setRequestedVendors] = useState<Array<{ name: string; code: string }>>([])
+  const [requestCount, setRequestCount] = useState(0)
 
   const { data: vendorsData, isLoading: isLoadingVendors } = useVendorsAdvancedSearch({
     q: filters.q,
@@ -77,8 +89,17 @@ export default function RequestProposalsPage() {
         })
       }
 
-      toast.success(`✅ Requested proposals from ${vendors.length} vendor(s)`)
-      router.push(`/deals/${dealId}?tab=proposals`)
+      // Store vendor info for success modal
+      const vendorInfo = vendors.map((v) => ({
+        name: v.company_name,
+        code: v.vendor_code,
+      }))
+      setRequestedVendors(vendorInfo)
+      setRequestCount(vendors.length)
+      setShowSuccessModal(true)
+
+      // Clear selections
+      setSelectedVendorIds(new Set())
     } catch (error) {
       console.error("Error requesting proposals:", error)
       toast.error("Failed to request proposals")
@@ -334,6 +355,63 @@ export default function RequestProposalsPage() {
           )}
         </div>
       </div>
+
+      {/* Success Modal */}
+      <AlertDialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex justify-center mb-4">
+              <CheckCircle2 className="w-16 h-16 text-green-600" />
+            </div>
+            <AlertDialogTitle className="text-center text-2xl">
+              Proposals Requested! ✅
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 text-center">
+                <p className="text-base font-medium text-gray-900">
+                  Successfully requested proposals from {requestCount} vendor{requestCount !== 1 ? "s" : ""}
+                </p>
+
+                {requestedVendors.length > 0 && (
+                  <div className="bg-blue-50 rounded-lg p-4 space-y-2 text-sm">
+                    <p className="font-semibold text-blue-900">Vendors contacted:</p>
+                    {requestedVendors.map((vendor, idx) => (
+                      <div key={idx} className="text-left flex justify-between items-center">
+                        <span className="text-gray-700">{vendor.name}</span>
+                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                          {vendor.code}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-sm text-gray-600">
+                  You can track proposal responses in the Proposals tab of your deal.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="flex gap-3 pt-4">
+            <AlertDialogAction
+              onClick={() => setShowSuccessModal(false)}
+              className="flex-1 bg-gray-600 hover:bg-gray-700"
+            >
+              Stay Here
+            </AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccessModal(false)
+                router.push(`/deals/${dealId}?tab=proposals`)
+              }}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              View Proposals
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
