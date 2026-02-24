@@ -6,7 +6,10 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { DealForm } from "@/components/deals/deal-form"
 import { useDeal } from "@/lib/hooks/use-deals"
 
@@ -56,9 +59,19 @@ export default function EditDealPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Edit Deal</h1>
-        <p className="text-gray-600 mt-1">{deal.deal_number}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href={`/deals/${dealId}`}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">Edit Deal</h1>
+            <p className="text-gray-600 mt-1">{deal.deal_number}</p>
+          </div>
+        </div>
       </div>
       <DealForm initialDeal={deal} extractedRFQData={extractedData} />
     </div>
