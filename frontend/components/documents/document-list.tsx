@@ -283,6 +283,7 @@ export function DocumentList({
                           onClick={() => {
                             // Extract the actual data from the parsed_data wrapper
                             const actualData = doc.parsed_data?.data || doc.parsed_data
+                            setSelectedDocument(doc as Document)
                             handleUseData(actualData)
                           }}
                           disabled={disabled}
