@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plus, X } from "lucide-react"
-import { useEffect } from "react"
+import { Plus, X, Check } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,6 +34,8 @@ interface CustomerPoFormProps {
 
 export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
   const router = useRouter()
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const createMutation = useCreateCustomerPo()
   const updateMutation = useUpdateCustomerPo(initialCustomerPo?.id || "")
 
@@ -122,12 +124,14 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
 
       if (initialCustomerPo) {
         await updateMutation.mutateAsync(payload as any)
-        router.push(`/customer-pos/${initialCustomerPo.id}`)
+        setSuccessMessage("Purchase Order updated successfully!")
+        setShowSuccessAlert(true)
       } else {
         // Exclude auto-generated internal_ref on creation
         const { internal_ref, ...createData } = payload
         const newCustomerPo = await createMutation.mutateAsync(createData as any)
-        router.push(`/customer-pos/${newCustomerPo.id}`)
+        setSuccessMessage("Purchase Order created successfully!")
+        setShowSuccessAlert(true)
       }
     } catch (error: any) {
       console.error("Error submitting form:", error)
@@ -140,6 +144,15 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
   return (
     <Card>
       <CardContent className="pt-6">
+        {showSuccessAlert && (
+          <div className="mb-6 p-4 border border-green-200 bg-green-50 rounded-lg flex items-start gap-3 animate-in fade-in">
+            <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-green-900">Success</p>
+              <p className="text-sm text-green-800 mt-1">{successMessage}</p>
+            </div>
+          </div>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Basic Information Section */}

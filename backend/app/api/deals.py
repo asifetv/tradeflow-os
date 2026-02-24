@@ -1,7 +1,9 @@
 """API endpoints for deal management."""
+import traceback
 from typing import Optional
 from uuid import UUID
 
+import structlog
 from fastapi import APIRouter, HTTPException, Query, status
 
 from app.deps import CurrentUserDep, SessionDep
@@ -16,6 +18,8 @@ from app.schemas.deal import (
 from app.schemas.activity_log import DealActivityListResponse
 from app.services.deal import DealService
 
+logger = structlog.get_logger(__name__)
+
 router = APIRouter(
     prefix="/api/deals",
     tags=["deals"],
@@ -29,14 +33,26 @@ async def create_deal(
     current_user: CurrentUserDep,
 ):
     """Create a new deal."""
-    service = DealService(
-        db,
-        user_id=current_user["user_id"],
-        company_id=current_user["company_id"]
-    )
-    deal = await service.create_deal(deal_data)
-    await db.commit()
-    return deal
+    try:
+        logger.info("Creating deal", user_id=str(current_user["user_id"]), company_id=str(current_user["company_id"]))
+        service = DealService(
+            db,
+            user_id=current_user["user_id"],
+            company_id=current_user["company_id"]
+        )
+        deal = await service.create_deal(deal_data)
+        await db.commit()
+        logger.info("Deal created successfully", deal_number=deal.deal_number)
+        return deal
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error("Failed to create deal", error=str(e), traceback=traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create deal: {str(e)}",
+        )
 
 
 @router.get("", response_model=DealListResponse)

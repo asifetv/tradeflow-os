@@ -1,8 +1,10 @@
 """FastAPI application factory."""
+import traceback
 from contextlib import asynccontextmanager
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from app.config import settings
@@ -48,6 +50,29 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
         max_age=600,
     )
+
+    # Global exception handler to ensure CORS headers on 500 errors
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        logger.error(
+            "Unhandled exception",
+            path=request.url.path,
+            method=request.method,
+            error=str(exc),
+            traceback=traceback.format_exc(),
+        )
+        origin = request.headers.get("origin", "")
+        headers = {}
+        if origin in origins:
+            headers = {
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Credentials": "true",
+            }
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(exc)},
+            headers=headers,
+        )
 
     # Health check endpoint
     @app.get("/healthz")
