@@ -46,7 +46,7 @@ class VendorProposalService:
         if not deal_result.scalars().first():
             raise ValueError("Deal not found")
 
-        # Verify vendor belongs to company
+        # Verify and fetch vendor belongs to company
         vendor_result = await self.db.execute(
             select(Vendor).where(
                 and_(
@@ -56,7 +56,8 @@ class VendorProposalService:
                 )
             )
         )
-        if not vendor_result.scalars().first():
+        vendor = vendor_result.scalars().first()
+        if not vendor:
             raise ValueError("Vendor not found")
 
         proposal = VendorProposal(
@@ -77,6 +78,9 @@ class VendorProposalService:
         )
         self.db.add(proposal)
         await self.db.flush()
+
+        # Manually set the vendor relationship to avoid lazy loading
+        proposal.vendor = vendor
         return VendorProposalResponse.from_orm(proposal)
 
     async def get_proposal(self, proposal_id: UUID) -> Optional[VendorProposalResponse]:
