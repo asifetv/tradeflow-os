@@ -111,11 +111,15 @@ export function DocumentList({
   }
 
   const handleConfirmMismatch = (proceed: boolean) => {
-    if (proceed && pendingExtractedData && selectedDocument && onUseExtractedData) {
-      onUseExtractedData(pendingExtractedData, selectedDocument.category)
+    try {
+      if (proceed && pendingExtractedData && selectedDocument && onUseExtractedData) {
+        console.log("Proceeding with extracted data despite mismatch:", pendingExtractedData)
+        onUseExtractedData(pendingExtractedData, selectedDocument.category)
+      }
+    } finally {
+      setShowCustomerMismatchDialog(false)
+      setPendingExtractedData(null)
     }
-    setShowCustomerMismatchDialog(false)
-    setPendingExtractedData(null)
   }
 
   if (isLoading) {
@@ -380,12 +384,15 @@ export function DocumentList({
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => handleConfirmMismatch(true)}
+              <Button
+                onClick={() => {
+                  handleConfirmMismatch(true)
+                  setShowCustomerMismatchDialog(false)
+                }}
                 className="bg-yellow-600 hover:bg-yellow-700"
               >
                 Proceed Anyway
-              </AlertDialogAction>
+              </Button>
             </div>
           </AlertDialogContent>
         </AlertDialog>
