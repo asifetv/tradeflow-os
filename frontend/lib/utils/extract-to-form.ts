@@ -68,6 +68,7 @@ export function mapRFQToDeal(extractedData: any): {
   if (warning) warnings.push(warning)
 
   // Map line items with validation
+  // Note: Field names must match lineItemSchema in frontend/lib/validations/deal.ts
   const lineItems = extractedData.line_items?.map((item: any, idx: number) => {
     // Fallback: unit_price_requested → unit_price
     const unitPrice = item.unit_price_requested ?? item.unit_price ?? 0
@@ -78,11 +79,12 @@ export function mapRFQToDeal(extractedData: any): {
 
     return {
       description: item.description || "",
-      specification: item.specification || "",
+      material_spec: item.specification || item.material_spec || "",
       quantity: item.quantity || 0,
       unit: item.unit || "",
       unit_price: unitPrice,
-      total_price: unitPrice * (item.quantity || 0),
+      unit_total: unitPrice * (item.quantity || 0),
+      required_delivery_date: item.required_delivery_date || extractedData.delivery_date_requested || "",
     }
   }) || []
 
@@ -116,6 +118,7 @@ export function mapVendorProposalToQuote(extractedData: any): {
   if (warning) warnings.push(warning)
 
   // Map line items
+  // Note: Field names must match quoteLineItemSchema in frontend/lib/validations/quote.ts
   const lineItems = extractedData.line_items?.map((item: any, idx: number) => {
     const unitPrice = item.unit_price ?? 0
     if (unitPrice === 0) {
@@ -124,7 +127,7 @@ export function mapVendorProposalToQuote(extractedData: any): {
 
     return {
       description: item.description || "",
-      specification: item.specification || "",
+      material_spec: item.specification || item.material_spec || "",
       quantity: item.quantity || 0,
       unit: item.unit || "",
       unit_price: unitPrice,
@@ -164,6 +167,7 @@ export function mapInvoiceToCustomerPO(extractedData: any): {
   if (warning) warnings.push(warning)
 
   // Map line items
+  // Note: Field names must match customerPoLineItemSchema in frontend/lib/validations/customer-po.ts
   const lineItems = extractedData.line_items?.map((item: any, idx: number) => {
     const unitPrice = item.unit_price ?? 0
     if (unitPrice === 0) {
@@ -172,7 +176,9 @@ export function mapInvoiceToCustomerPO(extractedData: any): {
 
     return {
       description: item.description || "",
+      material_spec: item.material_spec || item.specification || "",
       quantity: item.quantity || 0,
+      unit: item.unit || "",
       unit_price: unitPrice,
       total_price: item.total || unitPrice * (item.quantity || 0),
     }

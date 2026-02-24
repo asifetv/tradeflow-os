@@ -117,7 +117,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
       setShowDataAppliedAlert(true)
       setTimeout(() => setShowDataAppliedAlert(false), 5000)
     }
-  }, [extractedRFQData, append, remove, setValue, form, fields])
+  }, [extractedRFQData]) // append, remove, setValue are stable refs from useFieldArray/useForm
 
   const handleFormSubmit = async (data: DealFormValues) => {
     setIsSubmitting(true)

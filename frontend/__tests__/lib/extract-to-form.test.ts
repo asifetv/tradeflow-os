@@ -115,11 +115,12 @@ describe("extract-to-form utilities", () => {
 
       expect(result.data.line_items).toHaveLength(1)
       expect(result.data.line_items![0].description).toBe("Steel Coil")
-      expect(result.data.line_items![0].specification).toBe("Hot rolled, 2mm")
+      expect(result.data.line_items![0].material_spec).toBe("Hot rolled, 2mm")
       expect(result.data.line_items![0].quantity).toBe(100)
       expect(result.data.line_items![0].unit).toBe("kg")
       expect(result.data.line_items![0].unit_price).toBe(5.5)
-      expect(result.data.line_items![0].total_price).toBe(550)
+      expect(result.data.line_items![0].unit_total).toBe(550)
+      expect(result.data.line_items![0].required_delivery_date).toBe("")
     })
 
     it("should fallback to unit_price if unit_price_requested missing", () => {
