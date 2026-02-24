@@ -77,12 +77,18 @@ export default function DealDetailPage() {
   }
 
   const handleUseExtractedData = (extractedData: any, category: string) => {
+    console.log(`[DealDetailPage] handleUseExtractedData called with category: ${category}`)
+    console.log(`[DealDetailPage] Extracted data:`, extractedData)
+
     // Store extracted data in sessionStorage to pass to edit page
-    sessionStorage.setItem(
-      `deal_extracted_data_${dealId}`,
-      JSON.stringify(extractedData)
-    )
+    const storageKey = `deal_extracted_data_${dealId}`
+    sessionStorage.setItem(storageKey, JSON.stringify(extractedData))
+
+    console.log(`[DealDetailPage] Stored data in sessionStorage with key: ${storageKey}`)
+    console.log(`[DealDetailPage] Verifying stored data:`, sessionStorage.getItem(storageKey))
+
     // Navigate to edit page
+    console.log(`[DealDetailPage] Navigating to /deals/${dealId}/edit`)
     router.push(`/deals/${dealId}/edit`)
   }
 

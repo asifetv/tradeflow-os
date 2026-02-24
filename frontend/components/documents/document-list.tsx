@@ -90,21 +90,31 @@ export function DocumentList({
   }
 
   const handleUseData = (extractedData: any) => {
+    console.log("[DocumentList] handleUseData called with data:", extractedData)
+    console.log("[DocumentList] Current customer name:", currentCustomerName)
+    console.log("[DocumentList] Selected document:", selectedDocument)
+
     // Check for customer name mismatch
     const extractedCustomerName = extractedData.customer_name?.trim().toLowerCase()
     const currentCustomer = currentCustomerName?.trim().toLowerCase()
+
+    console.log("[DocumentList] Extracted customer:", extractedCustomerName)
+    console.log("[DocumentList] Current customer:", currentCustomer)
 
     if (
       extractedCustomerName &&
       currentCustomer &&
       extractedCustomerName !== currentCustomer
     ) {
+      console.log("[DocumentList] Customer mismatch detected, showing dialog")
       // Store the data and show confirmation dialog
       setPendingExtractedData(extractedData)
       setShowCustomerMismatchDialog(true)
     } else {
       // No mismatch, proceed immediately
+      console.log("[DocumentList] No mismatch, calling onUseExtractedData")
       if (selectedDocument && onUseExtractedData) {
+        console.log("[DocumentList] Calling onUseExtractedData with category:", selectedDocument.category)
         onUseExtractedData(extractedData, selectedDocument.category)
       }
     }

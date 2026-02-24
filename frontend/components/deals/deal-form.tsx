@@ -75,6 +75,8 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
   // Apply extracted RFQ data to form
   useEffect(() => {
     if (extractedRFQData) {
+      console.log("[DealForm] Received extractedRFQData:", extractedRFQData)
+
       const mappingResult = mapRFQToDeal(extractedRFQData)
       const { data: mappedData, warnings } = mappingResult
 
@@ -84,28 +86,38 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
         warnings.forEach((w) => console.warn("  -", w))
       }
 
-      console.log("[DealForm] Applying extracted data:", mappedData)
+      console.log("[DealForm] Mapped data to apply:", mappedData)
+      console.log("[DealForm] Form state before apply - currency:", form.getValues("currency"))
 
       // Update all form fields
       Object.keys(mappedData).forEach((key) => {
         const value = (mappedData as any)[key]
+        console.log(`[DealForm] Setting field '${key}' to:`, value)
+
         if (key === "line_items" && Array.isArray(value)) {
           // Clear existing line items and add new ones
+          console.log(`[DealForm] Clearing ${fields.length} existing line items`)
           while (fields.length > 0) {
             remove(0)
           }
-          value.forEach((item) => {
+          console.log(`[DealForm] Adding ${value.length} new line items`)
+          value.forEach((item, idx) => {
+            console.log(`[DealForm] Appending line item ${idx}:`, item)
             append(item)
           })
         } else {
+          console.log(`[DealForm] Calling setValue for '${key}'`)
           setValue(key as keyof DealFormValues, value)
         }
       })
 
+      console.log("[DealForm] Form state after apply - currency:", form.getValues("currency"))
+      console.log("[DealForm] Form state after apply - all values:", form.getValues())
+
       setShowDataAppliedAlert(true)
       setTimeout(() => setShowDataAppliedAlert(false), 5000)
     }
-  }, [extractedRFQData])
+  }, [extractedRFQData, append, remove, setValue, form, fields])
 
   const handleFormSubmit = async (data: DealFormValues) => {
     setIsSubmitting(true)

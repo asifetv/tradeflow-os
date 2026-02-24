@@ -21,15 +21,22 @@ export default function EditDealPage() {
   // Retrieve extracted data from sessionStorage on mount
   useEffect(() => {
     const storageKey = `deal_extracted_data_${dealId}`
+    console.log(`[EditDealPage] Looking for sessionStorage key: ${storageKey}`)
     const stored = sessionStorage.getItem(storageKey)
+    console.log(`[EditDealPage] sessionStorage value:`, stored ? JSON.parse(stored) : "NOT FOUND")
+
     if (stored) {
       try {
-        setExtractedData(JSON.parse(stored))
+        const parsedData = JSON.parse(stored)
+        console.log(`[EditDealPage] Successfully parsed extracted data:`, parsedData)
+        setExtractedData(parsedData)
         // Clear it after retrieving so it doesn't persist across navigations
         sessionStorage.removeItem(storageKey)
       } catch (e) {
         console.error("Failed to parse extracted data:", e)
       }
+    } else {
+      console.log(`[EditDealPage] No extracted data found in sessionStorage`)
     }
   }, [dealId])
 
