@@ -74,7 +74,6 @@ export default function RequestProposalsPage() {
         await createProposal.mutateAsync({
           deal_id: dealId,
           vendor_id: vendor.id,
-          status: "requested",
         })
       }
 
