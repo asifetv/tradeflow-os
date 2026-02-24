@@ -83,15 +83,25 @@ class CustomerService:
         Returns:
             Generated customer code
         """
-        # Get the maximum numeric part of existing customer codes for this company
-        query = select(func.count(Customer.id)).where(
-            (Customer.deleted_at.is_(None)) & (Customer.company_id == self.company_id)
-        )
+        # Get all existing customer codes for this company
+        query = select(Customer.customer_code).where(
+            Customer.company_id == self.company_id
+        ).order_by(Customer.customer_code.desc())
         result = await self.db.execute(query)
-        count = result.scalar() or 0
+        customer_codes = result.scalars().all()
+
+        # Extract numeric parts and find maximum
+        max_num = 0
+        for code in customer_codes:
+            if code and code.startswith("CUST-"):
+                try:
+                    num = int(code.split("-")[1])
+                    max_num = max(max_num, num)
+                except (ValueError, IndexError):
+                    pass
 
         # Generate next code
-        next_num = count + 1
+        next_num = max_num + 1
         return f"CUST-{next_num:03d}"
 
     async def get_customer(self, customer_id: UUID) -> Optional[CustomerResponse]:

@@ -430,16 +430,26 @@ class QuoteService:
         """
         from datetime import datetime
 
-        # Get the maximum numeric part of quotes from current year for this company
+        # Get all existing quote numbers for this company
         current_year = datetime.now().year
-        query = select(func.count(Quote.id)).where(
-            (Quote.deleted_at.is_(None)) & (Quote.company_id == self.company_id)
-        )
+        query = select(Quote.quote_number).where(
+            Quote.company_id == self.company_id
+        ).order_by(Quote.quote_number.desc())
         result = await self.db.execute(query)
-        count = result.scalar() or 0
+        quote_numbers = result.scalars().all()
+
+        # Extract numeric parts and find maximum for current year
+        max_num = 0
+        for quote_num in quote_numbers:
+            if quote_num and f"QT-{current_year}-" in quote_num:
+                try:
+                    num = int(quote_num.split("-")[-1])
+                    max_num = max(max_num, num)
+                except (ValueError, IndexError):
+                    pass
 
         # Generate next number
-        next_num = count + 1
+        next_num = max_num + 1
         return f"QT-{current_year}-{next_num:03d}"
 
     async def _get_quote_internal(self, quote_id: UUID) -> Optional[Quote]:

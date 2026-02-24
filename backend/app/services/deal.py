@@ -365,15 +365,25 @@ class DealService:
         Returns:
             Generated deal number
         """
-        # Get the maximum numeric part of existing deal numbers for this company
-        query = select(func.count(Deal.id)).where(
-            (Deal.deleted_at.is_(None)) & (Deal.company_id == self.company_id)
-        )
+        # Get all existing deal numbers for this company (including soft-deleted)
+        query = select(Deal.deal_number).where(
+            Deal.company_id == self.company_id
+        ).order_by(Deal.deal_number.desc())
         result = await self.db.execute(query)
-        count = result.scalar() or 0
+        deal_numbers = result.scalars().all()
+
+        # Extract numeric parts and find maximum
+        max_num = 0
+        for deal_num in deal_numbers:
+            if deal_num and deal_num.startswith("DEAL-"):
+                try:
+                    num = int(deal_num.split("-")[1])
+                    max_num = max(max_num, num)
+                except (ValueError, IndexError):
+                    pass
 
         # Generate next number
-        next_num = count + 1
+        next_num = max_num + 1
         return f"DEAL-{next_num:03d}"
 
     async def _get_deal_internal(self, deal_id: UUID) -> Optional[Deal]:

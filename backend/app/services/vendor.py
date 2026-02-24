@@ -30,15 +30,25 @@ class VendorService:
         Returns:
             Generated vendor code
         """
-        # Get the maximum numeric part of existing vendor codes for this company
-        query = select(func.count(Vendor.id)).where(
-            (Vendor.deleted_at.is_(None)) & (Vendor.company_id == self.company_id)
-        )
+        # Get all existing vendor codes for this company
+        query = select(Vendor.vendor_code).where(
+            Vendor.company_id == self.company_id
+        ).order_by(Vendor.vendor_code.desc())
         result = await self.db.execute(query)
-        count = result.scalar() or 0
+        vendor_codes = result.scalars().all()
+
+        # Extract numeric parts and find maximum
+        max_num = 0
+        for code in vendor_codes:
+            if code and code.startswith("VEND-"):
+                try:
+                    num = int(code.split("-")[1])
+                    max_num = max(max_num, num)
+                except (ValueError, IndexError):
+                    pass
 
         # Generate next code
-        next_num = count + 1
+        next_num = max_num + 1
         return f"VEND-{next_num:03d}"
 
     async def create_vendor(self, data: VendorCreate) -> VendorResponse:

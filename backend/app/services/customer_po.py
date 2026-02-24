@@ -417,16 +417,26 @@ class CustomerPOService:
         """
         from datetime import datetime
 
-        # Get the maximum numeric part of customer POs from current year for this company
+        # Get all existing internal references for this company
         current_year = datetime.now().year
-        query = select(func.count(CustomerPO.id)).where(
-            (CustomerPO.deleted_at.is_(None)) & (CustomerPO.company_id == self.company_id)
-        )
+        query = select(CustomerPO.internal_ref).where(
+            CustomerPO.company_id == self.company_id
+        ).order_by(CustomerPO.internal_ref.desc())
         result = await self.db.execute(query)
-        count = result.scalar() or 0
+        internal_refs = result.scalars().all()
+
+        # Extract numeric parts and find maximum for current year
+        max_num = 0
+        for ref in internal_refs:
+            if ref and f"CPO-{current_year}-" in ref:
+                try:
+                    num = int(ref.split("-")[-1])
+                    max_num = max(max_num, num)
+                except (ValueError, IndexError):
+                    pass
 
         # Generate next number
-        next_num = count + 1
+        next_num = max_num + 1
         return f"CPO-{current_year}-{next_num:03d}"
 
     async def _get_customer_po_internal(self, po_id: UUID) -> Optional[CustomerPO]:
