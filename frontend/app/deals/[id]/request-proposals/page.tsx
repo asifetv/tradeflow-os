@@ -358,56 +358,56 @@ export default function RequestProposalsPage() {
       {/* Success Modal */}
       <AlertDialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <div className="flex justify-center mb-4">
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
               <CheckCircle2 className="w-16 h-16 text-green-600" />
             </div>
-            <AlertDialogTitle className="text-center text-2xl">
-              Proposals Requested! ✅
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4 text-center">
-                <p className="text-base font-medium text-gray-900">
-                  Successfully requested proposals from {requestCount} vendor{requestCount !== 1 ? "s" : ""}
-                </p>
 
-                {requestedVendors.length > 0 && (
-                  <div className="bg-blue-50 rounded-lg p-4 space-y-2 text-sm">
-                    <p className="font-semibold text-blue-900">Vendors contacted:</p>
-                    {requestedVendors.map((vendor, idx) => (
-                      <div key={idx} className="text-left flex justify-between items-center">
-                        <span className="text-gray-700">{vendor.name}</span>
-                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
-                          {vendor.code}
-                        </span>
-                      </div>
-                    ))}
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Proposals Requested! ✅
+              </h2>
+              <p className="text-lg font-medium text-gray-700">
+                Successfully requested proposals from {requestCount} vendor{requestCount !== 1 ? "s" : ""}
+              </p>
+            </div>
+
+            {requestedVendors.length > 0 && (
+              <div className="bg-blue-50 rounded-lg p-4 space-y-2 text-sm border border-blue-200">
+                <p className="font-semibold text-blue-900">Vendors contacted:</p>
+                {requestedVendors.map((vendor, idx) => (
+                  <div key={idx} className="text-left flex justify-between items-center">
+                    <span className="text-gray-700">{vendor.name}</span>
+                    <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                      {vendor.code}
+                    </span>
                   </div>
-                )}
-
-                <p className="text-sm text-gray-600">
-                  You can track proposal responses in the Proposals tab of your deal.
-                </p>
+                ))}
               </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            )}
 
-          <div className="flex gap-3 pt-4">
-            <AlertDialogAction
-              onClick={() => setShowSuccessModal(false)}
-              className="flex-1 bg-gray-600 hover:bg-gray-700"
-            >
-              Stay Here
-            </AlertDialogAction>
-            <AlertDialogAction
-              onClick={() => {
-                setShowSuccessModal(false)
-                router.push(`/deals/${dealId}?tab=proposals`)
-              }}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-            >
-              View Proposals
-            </AlertDialogAction>
+            <p className="text-sm text-gray-600">
+              Track proposal responses in the Proposals tab of your deal
+            </p>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Request More
+              </Button>
+              <Button
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  setShowSuccessModal(false)
+                  router.push(`/deals/${dealId}?tab=proposals`)
+                }}
+              >
+                View Proposals
+              </Button>
+            </div>
           </div>
         </AlertDialogContent>
       </AlertDialog>
