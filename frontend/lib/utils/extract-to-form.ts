@@ -6,86 +6,200 @@ import { DealFormValues } from "@/lib/validations/deal"
 import { DocumentCategory } from "@/lib/types/document"
 
 /**
- * Map extracted RFQ data to Deal form values
+ * Extract currency with fallback logic
+ * Priority: top-level > first line item (if consistent) > default
+ *
+ * @param extractedData - Extracted data object
+ * @param defaultCurrency - Default currency if none found (default: "AED")
+ * @returns Object with currency and optional warning message
  */
-export function mapRFQToDeal(extractedData: any): Partial<DealFormValues> {
-  const lineItems = extractedData.line_items?.map((item: any) => ({
-    description: item.description || "",
-    specification: item.specification || "",
-    quantity: item.quantity || 0,
-    unit: item.unit || "",
-    unit_price: item.unit_price_requested || 0,
-    total_price: (item.unit_price_requested || 0) * (item.quantity || 0),
-  })) || []
+function extractCurrency(
+  extractedData: any,
+  defaultCurrency: string = "AED"
+): { currency: string; warning?: string } {
+  // Check top-level currency
+  if (extractedData.currency) {
+    return { currency: extractedData.currency }
+  }
+
+  // Fallback to line items
+  if (extractedData.line_items?.length > 0) {
+    const currencies = new Set(
+      extractedData.line_items
+        .map((item: any) => item.currency)
+        .filter(Boolean)
+    )
+
+    if (currencies.size === 1) {
+      const currency = Array.from(currencies)[0] as string
+      console.warn("[extractCurrency] Using currency from line items:", currency)
+      return {
+        currency,
+        warning: "Currency extracted from line items (top-level missing)",
+      }
+    } else if (currencies.size > 1) {
+      console.warn("[extractCurrency] Mixed currencies detected:", Array.from(currencies))
+      return {
+        currency: defaultCurrency,
+        warning: `Mixed currencies in line items (${Array.from(currencies).join(", ")}), using default: ${defaultCurrency}`,
+      }
+    }
+  }
+
+  console.warn("[extractCurrency] No currency found, using default:", defaultCurrency)
+  return {
+    currency: defaultCurrency,
+    warning: "No currency found, using default",
+  }
+}
+
+/**
+ * Map extracted RFQ data to Deal form values
+ * Returns both mapped data and any warnings encountered
+ */
+export function mapRFQToDeal(extractedData: any): {
+  data: Partial<DealFormValues>
+  warnings: string[]
+} {
+  const warnings: string[] = []
+
+  // Extract currency with fallback
+  const { currency, warning } = extractCurrency(extractedData)
+  if (warning) warnings.push(warning)
+
+  // Map line items with validation
+  const lineItems = extractedData.line_items?.map((item: any, idx: number) => {
+    // Fallback: unit_price_requested → unit_price
+    const unitPrice = item.unit_price_requested ?? item.unit_price ?? 0
+
+    if (unitPrice === 0) {
+      warnings.push(`Line item ${idx + 1}: Missing unit price`)
+    }
+
+    return {
+      description: item.description || "",
+      specification: item.specification || "",
+      quantity: item.quantity || 0,
+      unit: item.unit || "",
+      unit_price: unitPrice,
+      total_price: unitPrice * (item.quantity || 0),
+    }
+  }) || []
 
   return {
-    customer_rfq_ref: extractedData.rfq_number || extractedData.rfq_date || "",
-    description: extractedData.special_requirements || "",
-    currency: extractedData.currency || "AED",
-    line_items: lineItems,
-    total_value: extractedData.total_value_requested || 0,
-    notes: `RFQ Date: ${extractedData.rfq_date || "N/A"}\nPayment Terms: ${
-      extractedData.payment_terms || "N/A"
-    }\nDelivery: ${extractedData.delivery_date_requested || "N/A"}`,
+    data: {
+      customer_rfq_ref: extractedData.rfq_number || extractedData.rfq_date || "",
+      description: extractedData.special_requirements || "",
+      currency,
+      line_items: lineItems,
+      total_value: extractedData.total_value_requested || 0,
+      notes: `RFQ Date: ${extractedData.rfq_date || "N/A"}\nPayment Terms: ${
+        extractedData.payment_terms || "N/A"
+      }\nDelivery: ${extractedData.delivery_date_requested || "N/A"}`,
+    },
+    warnings,
   }
 }
 
 /**
  * Map extracted Vendor Proposal data to Quote form values
+ * Returns both mapped data and any warnings encountered
  */
-export function mapVendorProposalToQuote(extractedData: any): Partial<any> {
-  const lineItems = extractedData.line_items?.map((item: any) => ({
-    description: item.description || "",
-    specification: item.specification || "",
-    quantity: item.quantity || 0,
-    unit: item.unit || "",
-    unit_price: item.unit_price || 0,
-    total_price: item.total_price || item.unit_price * item.quantity || 0,
-  })) || []
+export function mapVendorProposalToQuote(extractedData: any): {
+  data: Partial<any>
+  warnings: string[]
+} {
+  const warnings: string[] = []
+
+  // Extract currency with fallback
+  const { currency, warning } = extractCurrency(extractedData)
+  if (warning) warnings.push(warning)
+
+  // Map line items
+  const lineItems = extractedData.line_items?.map((item: any, idx: number) => {
+    const unitPrice = item.unit_price ?? 0
+    if (unitPrice === 0) {
+      warnings.push(`Line item ${idx + 1}: Missing unit price`)
+    }
+
+    return {
+      description: item.description || "",
+      specification: item.specification || "",
+      quantity: item.quantity || 0,
+      unit: item.unit || "",
+      unit_price: unitPrice,
+      total_price: item.total_price || unitPrice * (item.quantity || 0),
+    }
+  }) || []
 
   return {
-    title: extractedData.proposal_number || "Vendor Proposal",
-    description: extractedData.quality_guarantees || "",
-    line_items: lineItems,
-    total_amount: extractedData.total_price || 0,
-    currency: extractedData.currency || "AED",
-    payment_terms: extractedData.payment_terms || "",
-    delivery_terms: extractedData.delivery_terms || "",
-    notes: `Lead Time: ${extractedData.lead_time_days || "N/A"} days\nValidity: ${
-      extractedData.validity_date || "N/A"
-    }`,
+    data: {
+      title: extractedData.proposal_number || "Vendor Proposal",
+      description: extractedData.quality_guarantees || "",
+      line_items: lineItems,
+      total_amount: extractedData.total_price || 0,
+      currency,
+      payment_terms: extractedData.payment_terms || "",
+      delivery_terms: extractedData.delivery_terms || "",
+      notes: `Lead Time: ${extractedData.lead_time_days || "N/A"} days\nValidity: ${
+        extractedData.validity_date || "N/A"
+      }`,
+    },
+    warnings,
   }
 }
 
 /**
  * Map extracted Invoice data to CustomerPO form values
+ * Returns both mapped data and any warnings encountered
  */
-export function mapInvoiceToCustomerPO(extractedData: any): Partial<any> {
-  const lineItems = extractedData.line_items?.map((item: any) => ({
-    description: item.description || "",
-    quantity: item.quantity || 0,
-    unit_price: item.unit_price || 0,
-    total_price: item.total || item.unit_price * item.quantity || 0,
-  })) || []
+export function mapInvoiceToCustomerPO(extractedData: any): {
+  data: Partial<any>
+  warnings: string[]
+} {
+  const warnings: string[] = []
+
+  // Extract currency with fallback
+  const { currency, warning } = extractCurrency(extractedData)
+  if (warning) warnings.push(warning)
+
+  // Map line items
+  const lineItems = extractedData.line_items?.map((item: any, idx: number) => {
+    const unitPrice = item.unit_price ?? 0
+    if (unitPrice === 0) {
+      warnings.push(`Line item ${idx + 1}: Missing unit price`)
+    }
+
+    return {
+      description: item.description || "",
+      quantity: item.quantity || 0,
+      unit_price: unitPrice,
+      total_price: item.total || unitPrice * (item.quantity || 0),
+    }
+  }) || []
 
   return {
-    po_number: extractedData.invoice_number || "",
-    line_items: lineItems,
-    total_amount: extractedData.total_amount || 0,
-    currency: extractedData.currency || "AED",
-    notes: `Invoice Date: ${extractedData.invoice_date || "N/A"}\nFrom: ${
-      extractedData.invoice_from || "N/A"
-    }`,
+    data: {
+      po_number: extractedData.invoice_number || "",
+      line_items: lineItems,
+      total_amount: extractedData.total_amount || 0,
+      currency,
+      notes: `Invoice Date: ${extractedData.invoice_date || "N/A"}\nFrom: ${
+        extractedData.invoice_from || "N/A"
+      }`,
+    },
+    warnings,
   }
 }
 
 /**
  * Main function to map any extracted data to appropriate form based on category
+ * Returns both mapped data and warnings for any issues encountered
  */
 export function mapExtractedDataToForm(
   extractedData: any,
   category: DocumentCategory | string
-): Partial<any> {
+): { data: Partial<any>; warnings: string[] } {
   switch (category) {
     case DocumentCategory.RFQ:
     case "RFQ":
@@ -97,7 +211,10 @@ export function mapExtractedDataToForm(
     case "INVOICE":
       return mapInvoiceToCustomerPO(extractedData)
     default:
-      return {}
+      return {
+        data: {},
+        warnings: [`Unknown category: ${category}`],
+      }
   }
 }
 

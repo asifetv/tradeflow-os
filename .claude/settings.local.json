@@ -24,7 +24,8 @@
       "Bash(git push:*)",
       "Bash(pip install:*)",
       "Bash(__NEW_LINE_4f10405bcf461aed__ python3:*)",
-      "Bash(/bin/sleep:*)"
+      "Bash(/bin/sleep:*)",
+      "Bash(sqlite3:*)"
     ]
   }
 }

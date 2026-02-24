@@ -100,6 +100,11 @@ class AIExtractionService:
         Returns:
             Prompt string for Claude
 
+        Field Naming Conventions:
+        - RFQ: 'unit_price_requested' in line items, top-level 'currency' from document
+        - VENDOR_PROPOSAL: 'unit_price' in line items, top-level 'currency' required
+        - INVOICE: 'unit_price' in line items, top-level 'currency' required
+        - All categories must include currency at top level (not just in line items)
         """
         base_instruction = """You are an expert document data extractor. Extract structured data from the provided document text.
 
@@ -131,6 +136,7 @@ Document Text:
     "rfq_number": "string",
     "rfq_date": "YYYY-MM-DD",
     "delivery_date_requested": "YYYY-MM-DD",
+    "currency": "string",
     "line_items": [
       {
         "description": "string",

@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { dealFormSchema, DealFormValues } from "@/lib/validations/deal"
 import { useCreateDeal, useUpdateDeal } from "@/lib/hooks/use-deals"
 import { CustomerSelector } from "@/components/customers/customer-selector"
-import { mapRFQToDeal, applyExtractedDataToForm } from "@/lib/utils/extract-to-form"
+import { mapRFQToDeal } from "@/lib/utils/extract-to-form"
 
 interface DealFormProps {
   initialDeal?: Deal
@@ -75,9 +75,16 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
   // Apply extracted RFQ data to form
   useEffect(() => {
     if (extractedRFQData) {
-      const mappedData = mapRFQToDeal(extractedRFQData)
-      const currentValues = form.getValues()
-      const updatedValues = applyExtractedDataToForm(currentValues, mappedData)
+      const mappingResult = mapRFQToDeal(extractedRFQData)
+      const { data: mappedData, warnings } = mappingResult
+
+      // Log warnings to console for debugging
+      if (warnings && warnings.length > 0) {
+        console.warn("[DealForm] Data mapping warnings:", warnings)
+        warnings.forEach((w) => console.warn("  -", w))
+      }
+
+      console.log("[DealForm] Applying extracted data:", mappedData)
 
       // Update all form fields
       Object.keys(mappedData).forEach((key) => {

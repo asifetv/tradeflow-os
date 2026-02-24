@@ -271,3 +271,87 @@ class TestAIExtractionService:
         call_kwargs = ai_service.client.messages.create.call_args.kwargs
         assert call_kwargs['model'] == ai_service.model
         assert call_kwargs['max_tokens'] == ai_service.max_tokens
+
+    def test_rfq_extraction_includes_currency(self, ai_service):
+        """Test that RFQ extraction includes top-level currency field."""
+        extracted_data = {
+            "data": {
+                "customer_name": "Test Corp",
+                "customer_contact": "John Doe",
+                "customer_email": "john@test.com",
+                "rfq_number": "RFQ-001",
+                "rfq_date": "2026-02-24",
+                "delivery_date_requested": "2026-03-24",
+                "currency": "USD",
+                "line_items": [
+                    {
+                        "description": "Steel Pipe",
+                        "specification": "Grade A, 2 inch diameter",
+                        "quantity": 100,
+                        "unit": "pieces",
+                        "unit_price_requested": 25.50,
+                        "currency": "USD"
+                    }
+                ],
+                "total_value_requested": 2550,
+                "special_requirements": "Fast delivery",
+                "payment_terms": "Net 30"
+            },
+            "confidence": 0.95
+        }
+
+        # Mock Claude response
+        mock_message = Mock()
+        mock_message.content = [Mock(text=json.dumps(extracted_data))]
+        ai_service.client.messages.create.return_value = mock_message
+
+        result = ai_service.extract_structured_data(
+            extracted_text="RFQ content with pricing in USD...",
+            category=DocumentCategory.RFQ
+        )
+
+        # Verify top-level currency is present
+        assert "currency" in result["data"]
+        assert result["data"]["currency"] == "USD"
+        assert result["data"]["rfq_number"] == "RFQ-001"
+        assert result["confidence"] == 0.95
+
+        # Verify line items also have currency
+        assert len(result["data"]["line_items"]) == 1
+        assert result["data"]["line_items"][0]["currency"] == "USD"
+        assert result["data"]["line_items"][0]["unit_price_requested"] == 25.50
+
+    def test_rfq_currency_extraction_fallback_to_line_items(self, ai_service):
+        """Test that RFQ extraction can fallback to line item currency if top-level missing."""
+        extracted_data = {
+            "data": {
+                "customer_name": "Test Corp",
+                "rfq_number": "RFQ-002",
+                "rfq_date": "2026-02-24",
+                # Note: No top-level currency
+                "line_items": [
+                    {
+                        "description": "Item 1",
+                        "quantity": 10,
+                        "unit_price_requested": 100,
+                        "currency": "EUR"
+                    }
+                ],
+                "total_value_requested": 1000
+            },
+            "confidence": 0.85
+        }
+
+        mock_message = Mock()
+        mock_message.content = [Mock(text=json.dumps(extracted_data))]
+        ai_service.client.messages.create.return_value = mock_message
+
+        result = ai_service.extract_structured_data(
+            extracted_text="RFQ in EUR...",
+            category=DocumentCategory.RFQ
+        )
+
+        # Top-level currency should be missing or null
+        # Frontend should handle fallback to line item currency
+        assert result["data"]["rfq_number"] == "RFQ-002"
+        assert result["data"]["line_items"][0]["currency"] == "EUR"

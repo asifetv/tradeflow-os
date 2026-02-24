@@ -132,6 +132,9 @@ class DocumentService:
                 document.extracted_text = ""
 
             # Step 4: AI Extraction
+            # Note: extraction_result structure: {"data": {...fields...}, "confidence": 0.92}
+            # We extract only the "data" key and store it in parsed_data
+            # Frontend receives the unwrapped data directly in doc.parsed_data (not double-wrapped)
             logger.info(f"Sending to Claude for {category.value} extraction...")
             try:
                 if document.extracted_text:  # Only if we have text
