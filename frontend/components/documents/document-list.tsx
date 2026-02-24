@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -364,7 +363,7 @@ export function DocumentList({
               <AlertCircleIcon className="h-5 w-5 text-yellow-600" />
               Customer Name Mismatch
             </AlertDialogTitle>
-            <div className="space-y-3 text-sm text-yellow-800">
+            <AlertDialogDescription className="space-y-3 text-sm text-yellow-800">
               <p>
                 The customer name extracted from the document does not match the customer for this deal:
               </p>
@@ -383,7 +382,7 @@ export function DocumentList({
               <p className="text-xs">
                 Please verify that you want to proceed with this data. You can edit the customer name in the form if needed.
               </p>
-            </div>
+            </AlertDialogDescription>
             <div className="flex justify-end gap-3 pt-4">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <Button
