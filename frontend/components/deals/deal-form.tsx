@@ -27,6 +27,14 @@ interface DealFormProps {
   extractedRFQData?: any
 }
 
+interface ExtractedDataSummary {
+  currency?: string
+  rfqRef?: string
+  lineItemCount: number
+  hasDeliveryDates: boolean
+  extractionDate: string
+}
+
 export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQData }: DealFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -34,6 +42,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [extractionSummary, setExtractionSummary] = useState<ExtractedDataSummary | null>(null)
 
   const createDealMutation = useCreateDeal()
   const updateDealMutation = useUpdateDeal(initialDeal?.id || "")
@@ -87,35 +96,39 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
       }
 
       console.log("[DealForm] Mapped data to apply:", mappedData)
-      console.log("[DealForm] Form state before apply - currency:", form.getValues("currency"))
 
       // Update all form fields
       Object.keys(mappedData).forEach((key) => {
         const value = (mappedData as any)[key]
-        console.log(`[DealForm] Setting field '${key}' to:`, value)
 
         if (key === "line_items" && Array.isArray(value)) {
           // Clear existing line items and add new ones
-          console.log(`[DealForm] Clearing ${fields.length} existing line items`)
           while (fields.length > 0) {
             remove(0)
           }
-          console.log(`[DealForm] Adding ${value.length} new line items`)
-          value.forEach((item, idx) => {
-            console.log(`[DealForm] Appending line item ${idx}:`, item)
+          value.forEach((item) => {
             append(item)
           })
         } else {
-          console.log(`[DealForm] Calling setValue for '${key}'`)
           setValue(key as keyof DealFormValues, value)
         }
       })
 
-      console.log("[DealForm] Form state after apply - currency:", form.getValues("currency"))
-      console.log("[DealForm] Form state after apply - all values:", form.getValues())
+      // Build extraction summary for display
+      const lineItemCount = (mappedData.line_items as any[])?.length || 0
+      const hasDeliveryDates = (mappedData.line_items as any[])?.some(
+        (item) => item.required_delivery_date
+      ) || false
 
+      const summary: ExtractedDataSummary = {
+        currency: mappedData.currency,
+        rfqRef: mappedData.customer_rfq_ref,
+        lineItemCount,
+        hasDeliveryDates,
+        extractionDate: new Date().toLocaleString(),
+      }
+      setExtractionSummary(summary)
       setShowDataAppliedAlert(true)
-      setTimeout(() => setShowDataAppliedAlert(false), 5000)
     }
   }, [extractedRFQData]) // append, remove, setValue are stable refs from useFieldArray/useForm
 
@@ -150,6 +163,58 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
   return (
     <Card>
       <CardContent className="pt-6">
+        {/* Extraction Summary Banner */}
+        {showDataAppliedAlert && extractionSummary && (
+          <div className="mb-6 p-4 border border-blue-300 bg-blue-50 rounded-lg animate-in fade-in">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="font-semibold text-blue-900 flex items-center gap-2">
+                  <Check className="h-5 w-5 text-blue-600" />
+                  RFQ Data Extracted & Populated
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  {extractionSummary.rfqRef && (
+                    <div>
+                      <span className="text-blue-700">RFQ Reference:</span>
+                      <p className="font-medium text-blue-900">{extractionSummary.rfqRef}</p>
+                    </div>
+                  )}
+                  {extractionSummary.currency && (
+                    <div>
+                      <span className="text-blue-700">Currency:</span>
+                      <p className="font-medium text-blue-900">{extractionSummary.currency}</p>
+                    </div>
+                  )}
+                  {extractionSummary.lineItemCount > 0 && (
+                    <div>
+                      <span className="text-blue-700">Line Items:</span>
+                      <p className="font-medium text-blue-900">{extractionSummary.lineItemCount} item{extractionSummary.lineItemCount !== 1 ? 's' : ''}</p>
+                    </div>
+                  )}
+                  {extractionSummary.hasDeliveryDates && (
+                    <div>
+                      <span className="text-blue-700">Delivery Dates:</span>
+                      <p className="font-medium text-blue-900">Populated</p>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-blue-600 mt-3">
+                  ✓ All fields have been populated from the RFQ document. Please verify the data before saving.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDataAppliedAlert(false)
+                  setExtractionSummary(null)
+                }}
+                className="text-blue-600 hover:text-blue-900 font-medium text-sm ml-4"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
         {showSuccessAlert && (
           <div className="mb-6 p-4 border border-green-200 bg-green-50 rounded-lg flex items-start gap-3 animate-in fade-in">
             <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -170,17 +235,6 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
           </div>
         )}
 
-        {showDataAppliedAlert && (
-          <div className="mb-6 p-4 border border-green-200 bg-green-50 rounded-lg flex items-start gap-3">
-            <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-green-900">Data Applied Successfully</p>
-              <p className="text-sm text-green-800 mt-1">
-                Extracted data has been applied to the form. Please review and adjust as needed.
-              </p>
-            </div>
-          </div>
-        )}
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
           {/* Basic Info */}
           <div>
@@ -195,10 +249,18 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="currency">Currency</Label>
+                <Label htmlFor="currency" className="flex items-center gap-2">
+                  Currency
+                  {extractionSummary && extractionSummary.currency && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                      Auto-filled
+                    </span>
+                  )}
+                </Label>
                 <Input
                   id="currency"
                   placeholder="AED"
+                  className={extractionSummary && extractionSummary.currency ? "bg-blue-50 border-blue-200" : ""}
                   {...form.register("currency")}
                 />
                 {errors.currency && (
@@ -209,10 +271,18 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="customer_rfq_ref">Customer RFQ Reference</Label>
+                <Label htmlFor="customer_rfq_ref" className="flex items-center gap-2">
+                  Customer RFQ Reference
+                  {extractionSummary && extractionSummary.rfqRef && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                      Auto-filled
+                    </span>
+                  )}
+                </Label>
                 <Input
                   id="customer_rfq_ref"
                   placeholder="e.g., RFQ-2024-001"
+                  className={extractionSummary && extractionSummary.rfqRef ? "bg-blue-50 border-blue-200" : ""}
                   {...form.register("customer_rfq_ref", {
                     setValueAs: (value) => value === "" ? null : value
                   })}
@@ -290,11 +360,22 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
 
           {/* Line Items */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Line Items</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Line Items</h3>
+              {extractionSummary && extractionSummary.lineItemCount > 0 && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                  {extractionSummary.lineItemCount} item{extractionSummary.lineItemCount !== 1 ? 's' : ''} extracted
+                </span>
+              )}
+            </div>
 
             <div className="space-y-3">
               {fields.map((field, index) => (
-                <div key={field.id} className="p-4 border border-gray-200 rounded-lg space-y-3">
+                <div key={field.id} className={`p-4 border rounded-lg space-y-3 ${
+                  extractionSummary && extractionSummary.lineItemCount > 0
+                    ? "border-blue-200 bg-blue-50"
+                    : "border-gray-200"
+                }`}>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <Label>Description</Label>
