@@ -366,3 +366,62 @@ class DocumentService:
         await self.db.flush()
         await self.db.commit()
         logger.info(f"Soft deleted document: {document_id}")
+
+    async def re_extract_document(self, document_id: UUID) -> Document:
+        """
+        Re-trigger AI extraction for a document.
+
+        Resets parsed_data and status, then re-runs extraction pipeline.
+
+        Args:
+            document_id: Document ID
+
+        Returns:
+            Updated Document with PROCESSING status
+
+        Raises:
+            ValueError: If document not found or not authorized
+        """
+        document = await self.get_document(document_id)
+        if not document:
+            raise ValueError("Document not found")
+
+        # Check if document has extracted text
+        if not document.extracted_text:
+            raise ValueError("Cannot re-extract: no extracted text available (file may be corrupted)")
+
+        # Reset extraction status and data
+        document.status = DocumentStatus.PROCESSING
+        document.parsed_data = None
+        document.ai_confidence_score = None
+        document.error_message = None
+
+        await self.db.flush()
+
+        # Re-run AI extraction
+        try:
+            logger.info(f"Re-extracting document: {document_id}")
+
+            # Use existing extracted text to run AI extraction
+            extraction_service = AIExtractionService()
+            extraction_result = extraction_service.extract_structured_data(
+                extracted_text=document.extracted_text,
+                category=document.category,
+            )
+
+            # Update document with results
+            document.parsed_data = extraction_result.get("data", {})
+            document.ai_confidence_score = extraction_result.get("confidence", 0)
+            document.status = DocumentStatus.COMPLETED
+
+            logger.info(f"Re-extraction successful for document: {document_id}")
+
+        except Exception as e:
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            logger.error(f"Re-extraction failed for document {document_id}: {error_msg}")
+            document.status = DocumentStatus.FAILED
+            document.error_message = error_msg
+
+        await self.db.flush()
+        await self.db.commit()
+        return document

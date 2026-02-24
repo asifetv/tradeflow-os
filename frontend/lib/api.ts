@@ -484,6 +484,12 @@ export const documentApi = {
    */
   delete: (documentId: string) =>
     axiosInstance.delete(`/api/documents/${documentId}`),
+
+  /**
+   * Re-trigger AI extraction for a document
+   */
+  reExtract: (documentId: string) =>
+    axiosInstance.post<Document>(`/api/documents/${documentId}/re-extract`),
 }
 
 export { axiosInstance }

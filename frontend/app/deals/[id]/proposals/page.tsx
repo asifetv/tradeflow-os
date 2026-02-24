@@ -70,7 +70,6 @@ export default function ProposalsPage() {
       await vendorProposalApi.create({
         deal_id: dealId,
         vendor_id: values.vendor_id,
-        status: "requested",
       })
     },
     onSuccess: () => {

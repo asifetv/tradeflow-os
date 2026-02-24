@@ -17,6 +17,7 @@ import { toast } from "sonner"
 import { DocumentUpload } from "@/components/documents/document-upload"
 import { DocumentList } from "@/components/documents/document-list"
 import { DocumentCategory } from "@/lib/types/document"
+import { RefreshCw } from "lucide-react"
 
 export default function ProposalDetailPage() {
   const params = useParams()
@@ -29,6 +30,7 @@ export default function ProposalDetailPage() {
   const updateProposal = useUpdateVendorProposal()
 
   const [isEditMode, setIsEditMode] = useState(false)
+  const [showReExtractDialog, setShowReExtractDialog] = useState(false)
   const [editData, setEditData] = useState({
     total_price: proposal?.total_price?.toString() || "",
     currency: proposal?.currency || "AED",
@@ -110,6 +112,17 @@ export default function ProposalDetailPage() {
       toast.error("Failed to update proposal")
       console.error(error)
     }
+  }
+
+  const handleUseExtractedData = (extractedData: any, category: DocumentCategory | string) => {
+    console.log("[ProposalDetailPage] Extracted data received:", extractedData)
+
+    // Store in sessionStorage with proposalId key
+    const storageKey = `proposal_extracted_data_${proposalId}`
+    sessionStorage.setItem(storageKey, JSON.stringify(extractedData))
+
+    // Navigate to edit page
+    router.push(`/deals/${dealId}/proposals/${proposalId}/edit`)
   }
 
   if (isLoading) return <div className="py-8 text-center">Loading proposal...</div>
@@ -430,7 +443,9 @@ export default function ProposalDetailPage() {
 
       {/* Documents Section */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Documents</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Documents</h2>
+        </div>
         <DocumentUpload
           category={DocumentCategory.VENDOR_PROPOSAL}
           entityType="VendorProposal"
@@ -443,6 +458,7 @@ export default function ProposalDetailPage() {
           entityType="VendorProposal"
           entityId={proposalId}
           category={DocumentCategory.VENDOR_PROPOSAL}
+          onUseExtractedData={handleUseExtractedData}
         />
       </div>
 

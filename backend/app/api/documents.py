@@ -303,6 +303,44 @@ async def get_download_url(
         )
 
 
+@router.post("/{document_id}/re-extract", response_model=DocumentResponse)
+async def re_extract_document(
+    document_id: UUID,
+    db: SessionDep,
+    current_user: CurrentUserDep,
+):
+    """
+    Re-trigger AI extraction for a document.
+
+    Resets the document status to PROCESSING and retriggers extraction.
+    Useful when initial extraction failed or returned incomplete data.
+    """
+    service = DocumentService(
+        db=db,
+        company_id=current_user["company_id"],
+        user_id=current_user["user_id"],
+    )
+
+    try:
+        document = await service.re_extract_document(document_id)
+        return DocumentResponse.from_orm(document)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except Exception as e:
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        traceback.print_exc()
+        print(f"❌ RE-EXTRACT ERROR: {error_msg}", flush=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to re-extract document: {error_msg}",
+        )
+
+
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     document_id: UUID,

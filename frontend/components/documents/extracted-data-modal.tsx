@@ -67,9 +67,11 @@ export function ExtractedDataModal({
         <DialogHeader>
           <DialogTitle>Extracted Data from {document.original_filename}</DialogTitle>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant={document.ai_confidence_score > 0.7 ? "default" : "secondary"}>
-              Confidence: {(document.ai_confidence_score * 100).toFixed(0)}%
-            </Badge>
+            {document.ai_confidence_score !== null && document.ai_confidence_score !== undefined && (
+              <Badge variant={document.ai_confidence_score > 0.7 ? "default" : "secondary"}>
+                Confidence: {(document.ai_confidence_score * 100).toFixed(0)}%
+              </Badge>
+            )}
             <span className="text-xs text-muted-foreground">{document.category}</span>
           </div>
         </DialogHeader>

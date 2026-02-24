@@ -122,7 +122,7 @@ export function DealForm({ initialDeal, onSubmit: onSubmitCallback, extractedRFQ
 
       const summary: ExtractedDataSummary = {
         currency: mappedData.currency,
-        rfqRef: mappedData.customer_rfq_ref,
+        rfqRef: mappedData.customer_rfq_ref || undefined,
         lineItemCount,
         hasDeliveryDates,
         extractionDate: new Date().toLocaleString(),

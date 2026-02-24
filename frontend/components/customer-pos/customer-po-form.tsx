@@ -296,7 +296,7 @@ export function CustomerPoForm({ initialCustomerPo }: CustomerPoFormProps) {
                           <FormItem>
                             <FormLabel>Unit *</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., MT" {...field} />
+                              <Input placeholder="e.g., MT" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

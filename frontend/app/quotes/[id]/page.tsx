@@ -26,6 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { QuoteStatus } from "@/lib/types/quote"
+import { DocumentUpload } from "@/components/documents/document-upload"
+import { DocumentList } from "@/components/documents/document-list"
+import { DocumentCategory } from "@/lib/types/document"
 
 const VALID_TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
   [QuoteStatus.DRAFT]: [QuoteStatus.SENT, QuoteStatus.EXPIRED],
@@ -52,6 +55,17 @@ export default function QuoteDetailPage() {
 
   const handleStatusChange = async (newStatus: QuoteStatus) => {
     await updateQuoteStatus.mutateAsync({ status: newStatus })
+  }
+
+  const handleUseExtractedData = (extractedData: any, category: DocumentCategory | string) => {
+    console.log("[QuoteDetailPage] Extracted data received:", extractedData)
+
+    // Store in sessionStorage with quoteId key
+    const storageKey = `quote_extracted_data_${id}`
+    sessionStorage.setItem(storageKey, JSON.stringify(extractedData))
+
+    // Navigate to edit page
+    router.push(`/quotes/${id}/edit`)
   }
 
   const validTransitions = quote ? VALID_TRANSITIONS[quote.status] : []
@@ -132,11 +146,32 @@ export default function QuoteDetailPage() {
       <Tabs defaultValue="details" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="details">Quote Details</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
           <QuoteCard quoteId={id} />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Quote Documents</h3>
+            <DocumentUpload
+              category={DocumentCategory.INVOICE}
+              entityType="Quote"
+              entityId={id}
+              onUploadSuccess={() => {
+                // List will auto-refresh via React Query
+              }}
+            />
+            <DocumentList
+              entityType="Quote"
+              entityId={id}
+              category={DocumentCategory.INVOICE}
+              onUseExtractedData={handleUseExtractedData}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">

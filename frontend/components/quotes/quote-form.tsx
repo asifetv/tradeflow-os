@@ -28,12 +28,14 @@ import { DealSelector } from "@/components/deals/deal-selector"
 
 interface QuoteFormProps {
   initialQuote?: Quote
+  extractedQuoteData?: any
 }
 
-export function QuoteForm({ initialQuote }: QuoteFormProps) {
+export function QuoteForm({ initialQuote, extractedQuoteData }: QuoteFormProps) {
   const router = useRouter()
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+  const [showDataAppliedAlert, setShowDataAppliedAlert] = useState(false)
   const createMutation = useCreateQuote()
   const updateMutation = useUpdateQuote(initialQuote?.id || "")
 
@@ -83,6 +85,59 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
     }
   }, [customerId, dealId, form])
 
+  // Apply extracted data to form if available
+  useEffect(() => {
+    if (extractedQuoteData && initialQuote) {
+      console.log("[QuoteForm] Applying extracted data:", extractedQuoteData)
+
+      // Update title
+      if (extractedQuoteData.title) {
+        form.setValue("title", extractedQuoteData.title)
+      }
+
+      // Update financial fields
+      if (extractedQuoteData.total_amount !== undefined) {
+        form.setValue("total_amount", extractedQuoteData.total_amount)
+      }
+      if (extractedQuoteData.currency) {
+        form.setValue("currency", extractedQuoteData.currency)
+      }
+
+      // Update other fields
+      if (extractedQuoteData.payment_terms) {
+        form.setValue("payment_terms", extractedQuoteData.payment_terms)
+      }
+      if (extractedQuoteData.delivery_terms) {
+        form.setValue("delivery_terms", extractedQuoteData.delivery_terms)
+      }
+      if (extractedQuoteData.validity_days) {
+        form.setValue("validity_days", extractedQuoteData.validity_days)
+      }
+
+      // Update line items if provided
+      if (extractedQuoteData.line_items && Array.isArray(extractedQuoteData.line_items)) {
+        // Clear existing line items
+        while (fields.length > 0) {
+          remove(0)
+        }
+        // Add extracted line items
+        extractedQuoteData.line_items.forEach((item: any) => {
+          append({
+            description: item.description || "",
+            material_spec: item.material_spec,
+            quantity: item.quantity || 0,
+            unit: item.unit || "",
+            unit_price: item.unit_price || 0,
+            total_price: item.total_price || 0,
+          })
+        })
+      }
+
+      setShowDataAppliedAlert(true)
+      setTimeout(() => setShowDataAppliedAlert(false), 5000)
+    }
+  }, [extractedQuoteData, initialQuote, form, fields, append, remove])
+
   const isLoading = createMutation.isPending || updateMutation.isPending
 
   async function onSubmit(data: QuoteFormValues) {
@@ -130,6 +185,17 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
             <div>
               <p className="font-medium text-green-900">Success</p>
               <p className="text-sm text-green-800 mt-1">{successMessage}</p>
+            </div>
+          </div>
+        )}
+        {showDataAppliedAlert && extractedQuoteData && (
+          <div className="mb-6 p-4 border border-blue-200 bg-blue-50 rounded-lg flex items-start gap-3 animate-in fade-in">
+            <Check className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-blue-900">✅ Document Data Applied</p>
+              <p className="text-sm text-blue-700 mt-1">
+                Extracted data from the quote document has been automatically populated. Please verify and edit as needed.
+              </p>
             </div>
           </div>
         )}
@@ -289,7 +355,7 @@ export function QuoteForm({ initialQuote }: QuoteFormProps) {
                           <FormItem>
                             <FormLabel>Unit *</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., MT, Barrels" {...field} />
+                              <Input placeholder="e.g., MT, Barrels" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

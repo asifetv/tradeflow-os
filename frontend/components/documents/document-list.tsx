@@ -10,6 +10,7 @@ import {
   FileIcon,
   Eye,
   Import,
+  RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,8 +31,9 @@ import {
   getCategoryLabel,
   getStatusLabel,
 } from "@/lib/types/document"
-import { useDocuments, useDeleteDocument } from "@/lib/hooks/use-documents"
+import { useDocuments, useDeleteDocument, useCompanyDocuments } from "@/lib/hooks/use-documents"
 import { documentApi } from "@/lib/api"
+import { toast } from "sonner"
 import { ExtractedDataModal } from "./extracted-data-modal"
 
 interface DocumentListProps {
@@ -41,6 +43,7 @@ interface DocumentListProps {
   disabled?: boolean
   onUseExtractedData?: (data: any, category: DocumentCategory | string) => void
   currentCustomerName?: string
+  isCompanyLevel?: boolean
 }
 
 export function DocumentList({
@@ -50,19 +53,25 @@ export function DocumentList({
   disabled = false,
   onUseExtractedData,
   currentCustomerName,
+  isCompanyLevel = false,
 }: DocumentListProps) {
   const [skip, setSkip] = useState(0)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pendingExtractedData, setPendingExtractedData] = useState<any>(null)
   const [showCustomerMismatchDialog, setShowCustomerMismatchDialog] = useState(false)
+  const [reExtractingIds, setReExtractingIds] = useState<Set<string>>(new Set())
   const limit = 10
+
+  // Use appropriate hook based on document scope
+  const companyDocumentsQuery = useCompanyDocuments(category, skip, limit, isCompanyLevel)
+  const entityDocumentsQuery = useDocuments(entityType, entityId, category, skip, limit, !isCompanyLevel)
 
   const {
     data: listData,
     isLoading,
     isError,
-  } = useDocuments(entityType, entityId, category, skip, limit, true)
+  } = isCompanyLevel ? companyDocumentsQuery : entityDocumentsQuery
 
   const { mutate: deleteDocument, isPending: isDeleting } = useDeleteDocument()
 
@@ -131,6 +140,35 @@ export function DocumentList({
     } finally {
       setShowCustomerMismatchDialog(false)
       setPendingExtractedData(null)
+    }
+  }
+
+  const handleReExtract = async (doc: Document) => {
+    try {
+      setReExtractingIds((prev) => new Set([...prev, doc.id]))
+      console.log("[DocumentList] Starting re-extraction for document:", doc.id)
+      console.log("[DocumentList] API endpoint:", `/api/documents/${doc.id}/re-extract`)
+
+      const response = await documentApi.reExtract(doc.id)
+      console.log("[DocumentList] Re-extraction response:", response.data)
+
+      // Reset list skip to show updated documents
+      setSkip(0)
+
+      toast.success("Document re-extraction started. Please wait for processing to complete.")
+    } catch (error: any) {
+      console.error("[DocumentList] Re-extraction error:", error)
+      console.error("[DocumentList] Error response:", error.response?.data)
+      console.error("[DocumentList] Status:", error.response?.status)
+
+      const errorMsg = error.response?.data?.detail || error.message || "Unknown error"
+      toast.error(`Re-extraction failed: ${errorMsg}`)
+    } finally {
+      setReExtractingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(doc.id)
+        return next
+      })
     }
   }
 
@@ -261,6 +299,25 @@ export function DocumentList({
 
               {/* Actions */}
               <div className="ml-4 flex flex-shrink-0 gap-2">
+                {/* Re-extract button - show when completed or failed */}
+                {(doc.status === DocumentStatus.COMPLETED || doc.status === DocumentStatus.FAILED) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleReExtract(doc as Document)}
+                    disabled={disabled || reExtractingIds.has(doc.id)}
+                    title="Re-trigger AI extraction (useful if extraction failed or returned incomplete data)"
+                    className="gap-1"
+                  >
+                    {reExtractingIds.has(doc.id) ? (
+                      <LoaderIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    {reExtractingIds.has(doc.id) ? "Re-extracting..." : "Re-extract"}
+                  </Button>
+                )}
+
                 {doc.status === DocumentStatus.COMPLETED &&
                   doc.parsed_data &&
                   Object.keys(doc.parsed_data).length > 0 && (
@@ -283,8 +340,10 @@ export function DocumentList({
                           onClick={() => {
                             // Extract the actual data from the parsed_data wrapper
                             const actualData = doc.parsed_data?.data || doc.parsed_data
+                            // Set selectedDocument FIRST, then call callback directly
                             setSelectedDocument(doc as Document)
-                            handleUseData(actualData)
+                            console.log("[DocumentList] Use Data clicked, calling callback with data:", actualData)
+                            onUseExtractedData(actualData, doc.category)
                           }}
                           disabled={disabled}
                           title="Use extracted data to populate form"

@@ -237,8 +237,8 @@ export function applyExtractedDataToForm<T extends Record<string, any>>(
     // Only update specified fields
     const updated = { ...currentFormData }
     fieldsToUpdate.forEach((field) => {
-      if (field in extractedData) {
-        updated[field] = extractedData[field]
+      if (field in extractedData && extractedData[field] !== undefined) {
+        updated[field as keyof T] = extractedData[field] as T[keyof T]
       }
     })
     return updated

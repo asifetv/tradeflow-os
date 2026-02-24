@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { CloudUploadIcon, X } from "lucide-react"
+import { CloudUploadIcon, X, CheckCircle2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DocumentCategory, formatFileSize } from "@/lib/types/document"
 import { useUploadDocument } from "@/lib/hooks/use-documents"
 import { getCategoryLabel } from "@/lib/types/document"
+import { toast } from "sonner"
 
 interface DocumentUploadProps {
   category: DocumentCategory
@@ -47,6 +48,7 @@ export function DocumentUpload({
   const [description, setDescription] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
+  const [uploadSuccess, setUploadSuccess] = useState(false)
   const { mutate: uploadDocument, isPending, isError, error } = useUploadDocument()
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -85,14 +87,35 @@ export function DocumentUpload({
     if (description) formData.append("description", description)
     if (tags.length > 0) formData.append("tags", tags.join(","))
 
+    console.log("[DocumentUpload] Starting upload for:", selectedFile.name)
+
     uploadDocument(formData, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log("[DocumentUpload] Upload successful:", data)
+        // Show success notification
+        toast.success(`✅ ${selectedFile.name} uploaded and processing started`, {
+          description: "Document is being analyzed by AI. This may take 5-15 seconds.",
+          duration: 5000,
+        })
+
+        // Show success state briefly
+        setUploadSuccess(true)
+        setTimeout(() => setUploadSuccess(false), 3000)
+
         // Reset form
         setSelectedFile(null)
         setDescription("")
         setTags([])
         setTagInput("")
         onUploadSuccess?.()
+      },
+      onError: (error: any) => {
+        console.error("[DocumentUpload] Upload error:", error)
+        const errorMsg = error.response?.data?.detail || error.message || "Upload failed"
+        toast.error("❌ Upload failed", {
+          description: errorMsg,
+          duration: 5000,
+        })
       },
     })
   }
@@ -212,10 +235,29 @@ export function DocumentUpload({
         )}
       </div>
 
+      {/* Success Message */}
+      {uploadSuccess && (
+        <div className="mb-4 flex items-start gap-3 rounded-lg bg-green-50 p-3">
+          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-green-900">Upload successful!</p>
+            <p className="text-xs text-green-700 mt-1">
+              Document is being processed by AI for data extraction.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Error Message */}
       {isError && (
-        <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
-          {error instanceof Error ? error.message : "Upload failed"}
+        <div className="mb-4 flex items-start gap-3 rounded-lg bg-red-50 p-3">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-red-900">Upload failed</p>
+            <p className="text-xs text-red-700 mt-1">
+              {error instanceof Error ? error.message : "An error occurred during upload"}
+            </p>
+          </div>
         </div>
       )}
 
@@ -229,8 +271,8 @@ export function DocumentUpload({
       </Button>
 
       {isPending && (
-        <p className="mt-2 text-center text-sm text-gray-600">
-          This may take 5-15 seconds while we extract and analyze the document...
+        <p className="mt-2 text-center text-sm text-blue-600 font-medium">
+          ⏳ This may take 5-15 seconds while we extract and analyze the document...
         </p>
       )}
     </div>

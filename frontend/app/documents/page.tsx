@@ -44,7 +44,7 @@ export default function CompanyDocumentsPage() {
             <div>
               <h2 className="text-lg font-semibold mb-4">Upload Document</h2>
               <DocumentUpload
-                category={DocumentCategory.COMPANY_POLICY}
+                category={DocumentCategory.OTHER}
                 onUploadSuccess={() => {
                   // List will auto-refresh via React Query
                 }}
@@ -54,7 +54,7 @@ export default function CompanyDocumentsPage() {
             {/* Documents List */}
             <div className="lg:col-span-2">
               <h2 className="text-lg font-semibold mb-4">All Company Documents</h2>
-              <DocumentList />
+              <DocumentList isCompanyLevel={true} />
             </div>
           </div>
         </TabsContent>
@@ -74,7 +74,7 @@ export default function CompanyDocumentsPage() {
 
             <div className="lg:col-span-2">
               <h2 className="text-lg font-semibold mb-4">Company Policies</h2>
-              <DocumentList category={DocumentCategory.COMPANY_POLICY} />
+              <DocumentList category={DocumentCategory.COMPANY_POLICY} isCompanyLevel={true} />
             </div>
           </div>
         </TabsContent>
@@ -94,7 +94,7 @@ export default function CompanyDocumentsPage() {
 
             <div className="lg:col-span-2">
               <h2 className="text-lg font-semibold mb-4">Templates</h2>
-              <DocumentList category={DocumentCategory.TEMPLATE} />
+              <DocumentList category={DocumentCategory.TEMPLATE} isCompanyLevel={true} />
             </div>
           </div>
         </TabsContent>
@@ -114,7 +114,7 @@ export default function CompanyDocumentsPage() {
 
             <div className="lg:col-span-2">
               <h2 className="text-lg font-semibold mb-4">Other Documents</h2>
-              <DocumentList />
+              <DocumentList category={DocumentCategory.OTHER} isCompanyLevel={true} />
             </div>
           </div>
         </TabsContent>

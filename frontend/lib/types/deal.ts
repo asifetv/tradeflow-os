@@ -19,9 +19,9 @@ export enum DealStatus {
 
 export interface LineItem {
   description: string
-  material_spec: string
+  material_spec?: string | null
   quantity: number
-  unit: string
+  unit?: string | null
   unit_price?: number | null
   unit_total?: number | null
   required_delivery_date: string
