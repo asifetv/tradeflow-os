@@ -107,7 +107,9 @@ export function ExtractedDataModal({
           </Button>
           <Button
             onClick={() => {
-              onUseData(document.parsed_data)
+              // Extract the actual data from the parsed_data wrapper
+              const actualData = document.parsed_data?.data || document.parsed_data
+              onUseData(actualData)
               onClose()
             }}
             className="gap-2"

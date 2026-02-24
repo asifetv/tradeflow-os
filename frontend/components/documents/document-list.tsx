@@ -271,7 +271,9 @@ export function DocumentList({
                         <Button
                           size="sm"
                           onClick={() => {
-                            handleUseData(doc.parsed_data)
+                            // Extract the actual data from the parsed_data wrapper
+                            const actualData = doc.parsed_data?.data || doc.parsed_data
+                            handleUseData(actualData)
                           }}
                           disabled={disabled}
                           title="Use extracted data to populate form"
