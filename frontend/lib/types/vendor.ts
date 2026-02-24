@@ -83,7 +83,6 @@ export interface VendorProposal {
 export interface VendorProposalCreate {
   deal_id: string
   vendor_id: string
-  status?: "requested" | "received" | "selected" | "rejected"
   total_price?: number
   currency?: string
   lead_time_days?: number
@@ -92,6 +91,8 @@ export interface VendorProposalCreate {
   specs_match?: boolean
   discrepancies?: Record<string, any>
   notes?: string
+  raw_document_url?: string
+  parsed_data?: Record<string, any>
 }
 
 export interface VendorProposalUpdate {

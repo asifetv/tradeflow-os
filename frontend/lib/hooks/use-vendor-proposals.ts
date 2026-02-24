@@ -75,8 +75,20 @@ export function useCreateVendorProposal() {
 
   return useMutation({
     mutationFn: async (data: VendorProposalCreate) => {
-      const response = await vendorProposalApi.create(data)
-      return response.data
+      console.log("[useCreateVendorProposal] Creating proposal with data:", data)
+      try {
+        const response = await vendorProposalApi.create(data)
+        console.log("[useCreateVendorProposal] Success:", response.data)
+        return response.data
+      } catch (error: any) {
+        console.error("[useCreateVendorProposal] Error:", {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message,
+        })
+        throw error
+      }
     },
     onSuccess: (newProposal) => {
       // Invalidate proposals list and compare view
