@@ -113,8 +113,10 @@ export function DocumentList({
   const handleConfirmMismatch = (proceed: boolean) => {
     try {
       if (proceed && pendingExtractedData && selectedDocument && onUseExtractedData) {
-        console.log("Proceeding with extracted data despite mismatch:", pendingExtractedData)
-        onUseExtractedData(pendingExtractedData, selectedDocument.category)
+        // Remove customer_name from extracted data to avoid overwriting the current customer
+        const { customer_name, ...dataWithoutCustomerName } = pendingExtractedData
+        console.log("Proceeding with extracted data (excluding customer_name):", dataWithoutCustomerName)
+        onUseExtractedData(dataWithoutCustomerName, selectedDocument.category)
       }
     } finally {
       setShowCustomerMismatchDialog(false)
