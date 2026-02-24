@@ -358,28 +358,26 @@ export function DocumentList({
               <AlertCircleIcon className="h-5 w-5 text-yellow-600" />
               Customer Name Mismatch
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-yellow-800">
-              <div className="space-y-3">
-                <p>
-                  The customer name extracted from the document does not match the customer for this deal:
-                </p>
-                <div className="bg-yellow-50 p-3 rounded space-y-2">
-                  <div>
-                    <span className="font-semibold">Extracted from document:</span>
-                    <p className="text-yellow-900">
-                      {pendingExtractedData?.customer_name}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Deal customer:</span>
-                    <p className="text-yellow-900">{currentCustomerName}</p>
-                  </div>
+            <div className="space-y-3 text-sm text-yellow-800">
+              <p>
+                The customer name extracted from the document does not match the customer for this deal:
+              </p>
+              <div className="bg-yellow-50 p-3 rounded space-y-2">
+                <div>
+                  <span className="font-semibold">Extracted from document:</span>
+                  <p className="text-yellow-900">
+                    {pendingExtractedData?.customer_name}
+                  </p>
                 </div>
-                <p className="text-sm">
-                  Please verify that you want to proceed with this data. You can edit the customer name in the form if needed.
-                </p>
+                <div>
+                  <span className="font-semibold">Deal customer:</span>
+                  <p className="text-yellow-900">{currentCustomerName}</p>
+                </div>
               </div>
-            </AlertDialogDescription>
+              <p className="text-xs">
+                Please verify that you want to proceed with this data. You can edit the customer name in the form if needed.
+              </p>
+            </div>
             <div className="flex justify-end gap-3 pt-4">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
