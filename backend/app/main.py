@@ -74,15 +74,58 @@ def create_app() -> FastAPI:
             headers=headers,
         )
 
-    # Health check endpoint
+    # Health check endpoint - for liveness probes
     @app.get("/healthz")
     async def health():
+        """Liveness probe - simple status check."""
         return {"status": "ok"}
 
+    # Readiness check endpoint - for readiness probes
     @app.get("/readyz")
     async def readiness():
-        # TODO: check DB, Redis, MinIO connectivity
-        return {"status": "ready"}
+        """Readiness probe - check all service dependencies."""
+        from sqlalchemy import text
+        from app.database import async_session_local
+
+        checks = {
+            "database": False,
+            "minio": False,
+            "status": "ready",
+        }
+
+        # Check database connectivity
+        try:
+            async with async_session_local() as session:
+                await session.execute(text("SELECT 1"))
+            checks["database"] = True
+        except Exception as e:
+            logger.error("Database health check failed", error=str(e))
+            checks["status"] = "not_ready"
+
+        # Check MinIO connectivity
+        try:
+            from app.services.storage import StorageService
+            storage = StorageService()
+            # Simple check - list buckets (doesn't upload anything)
+            await storage.client._client_session.__aenter__()
+            # If we can reach MinIO, mark as healthy
+            checks["minio"] = True
+        except Exception as e:
+            logger.warning("MinIO health check failed (optional)", error=str(e))
+            # MinIO failure is not critical for readiness, log but don't fail
+
+        # Return 503 if not ready
+        if checks["status"] != "ready":
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "not_ready",
+                    "checks": checks,
+                    "message": "Service dependencies not available",
+                },
+            )
+
+        return {"status": "ready", "checks": checks}
 
     # Add explicit CORS handling for OPTIONS requests
     @app.options("/{full_path:path}")

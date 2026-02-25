@@ -1,0 +1,106 @@
+# TradeFlow OS - Production Docker Compose Overrides
+# Use: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  postgres:
+    # Use named volume for data persistence
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    # Production database settings
+    environment:
+      POSTGRES_INITDB_ARGS: "-c max_connections=100 -c shared_buffers=256MB -c effective_cache_size=1GB"
+    # Enable restart policy
+    restart: always
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  minio:
+    volumes:
+      - minio_data_prod:/data
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  api:
+    # Use production image from container registry
+    image: ghcr.io/${GITHUB_REPO_OWNER}/tradeflow-api:latest
+    restart: always
+    # Load environment from .env.production
+    env_file: .env.production
+    # No volume mounts in production (use environment variables)
+    volumes: []
+    # Only expose to nginx reverse proxy
+    ports:
+      - "127.0.0.1:8000:8000"
+    # Health check for orchestration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    # Enable restart with backoff
+    restart: unless-stopped
+
+  frontend:
+    # Use production image from container registry
+    image: ghcr.io/${GITHUB_REPO_OWNER}/tradeflow-web:latest
+    restart: always
+    env_file: .env.production
+    # No volume mounts in production
+    volumes: []
+    # Only expose to nginx reverse proxy
+    ports:
+      - "127.0.0.1:3000:3000"
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  minio_data_prod:
+    driver: local
+
+networks:
+  default:
+    name: tradeflow-network
+    driver: bridge
