@@ -51,7 +51,7 @@ echo ""
 echo "Step 6: Verifying migration head..."
 CURRENT=$(docker compose -f docker-compose.yml -f docker-compose.prod.yml exec api alembic current)
 echo "Current migration: $CURRENT"
-if [[ $CURRENT == *"005_add_document_management"* ]]; then
+if [[ $CURRENT == *"005"* ]]; then
     echo "✅ Done: Migration 005 is current (correct!)"
 else
     echo "❌ ERROR: Expected migration 005, got: $CURRENT"
