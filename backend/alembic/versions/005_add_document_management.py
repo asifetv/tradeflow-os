@@ -21,10 +21,10 @@ def upgrade() -> None:
     # Create documents table
     op.create_table(
         'documents',
-        sa.Column('id', sa.String(36), nullable=False),
-        sa.Column('company_id', sa.String(36), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('company_id', sa.UUID(), nullable=False),
         sa.Column('entity_type', sa.String(50), nullable=True),
-        sa.Column('entity_id', sa.String(36), nullable=True),
+        sa.Column('entity_id', sa.UUID(), nullable=True),
         sa.Column('category', sa.String(50), nullable=False),
         sa.Column('storage_bucket', sa.String(100), nullable=False),
         sa.Column('storage_key', sa.String(500), nullable=False),

@@ -21,8 +21,8 @@ def upgrade() -> None:
     # Create vendors table
     op.create_table(
         'vendors',
-        sa.Column('id', sa.String(36), nullable=False),
-        sa.Column('company_id', sa.String(36), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('company_id', sa.UUID(), nullable=False),
         sa.Column('vendor_code', sa.String(50), nullable=False),
         sa.Column('company_name', sa.String(200), nullable=False),
         sa.Column('country', sa.String(100), nullable=False),
@@ -52,10 +52,10 @@ def upgrade() -> None:
     # Create vendor_proposals table
     op.create_table(
         'vendor_proposals',
-        sa.Column('id', sa.String(36), nullable=False),
-        sa.Column('company_id', sa.String(36), nullable=False),
-        sa.Column('deal_id', sa.String(36), nullable=False),
-        sa.Column('vendor_id', sa.String(36), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('company_id', sa.UUID(), nullable=False),
+        sa.Column('deal_id', sa.UUID(), nullable=False),
+        sa.Column('vendor_id', sa.UUID(), nullable=False),
         sa.Column('status', sa.String(50), nullable=False, server_default='requested'),
         sa.Column('line_items', sa.JSON(), nullable=True),
         sa.Column('total_price', sa.Numeric(precision=15, scale=2), nullable=True),
