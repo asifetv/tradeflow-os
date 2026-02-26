@@ -41,7 +41,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
+        sa.ForeignKeyConstraint(['company_id'], ['company.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
 

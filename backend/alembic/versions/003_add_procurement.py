@@ -42,7 +42,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
+        sa.ForeignKeyConstraint(['company_id'], ['company.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index('ix_vendor_code_company', 'vendors', ['vendor_code', 'company_id'], unique=True)
@@ -71,7 +71,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
+        sa.ForeignKeyConstraint(['company_id'], ['company.id'], ),
         sa.ForeignKeyConstraint(['deal_id'], ['deal.id'], ),
         sa.ForeignKeyConstraint(['vendor_id'], ['vendors.id'], ),
         sa.PrimaryKeyConstraint('id')
