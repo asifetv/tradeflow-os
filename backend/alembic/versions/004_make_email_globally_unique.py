@@ -19,15 +19,15 @@ depends_on = None
 
 def upgrade() -> None:
     """Make email globally unique."""
-    with op.batch_alter_table('users', schema=None) as batch_op:
+    with op.batch_alter_table('user', schema=None) as batch_op:
         # Drop the old per-company unique index
-        batch_op.drop_index('ix_users_email_company')
+        batch_op.drop_index('ix_user_email_company')
         # Create new global unique index
-        batch_op.create_index('ix_users_email', ['email'], unique=True)
+        batch_op.create_index('ix_user_email', ['email'], unique=True)
 
 
 def downgrade() -> None:
     """Revert to per-company email uniqueness."""
-    with op.batch_alter_table('users', schema=None) as batch_op:
-        batch_op.drop_index('ix_users_email')
-        batch_op.create_index('ix_users_email_company', ['email', 'company_id'], unique=True)
+    with op.batch_alter_table('user', schema=None) as batch_op:
+        batch_op.drop_index('ix_user_email')
+        batch_op.create_index('ix_user_email_company', ['email', 'company_id'], unique=True)
