@@ -42,9 +42,9 @@ services:
     env_file: .env.production
     # No volume mounts in production (use environment variables)
     volumes: []
-    # Only expose to nginx reverse proxy
+    # Expose to all interfaces for external access
     ports:
-      - "127.0.0.1:8000:8000"
+      - "0.0.0.0:8000:8000"
     # Health check for orchestration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
@@ -69,9 +69,9 @@ services:
     env_file: .env.production
     # No volume mounts in production
     volumes: []
-    # Only expose to nginx reverse proxy
+    # Expose to all interfaces for external access
     ports:
-      - "127.0.0.1:3000:3000"
+      - "0.0.0.0:3000:3000"
     # Override dev command with production server
     command: node server.js
     # Health check
