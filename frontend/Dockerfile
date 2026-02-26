@@ -24,5 +24,6 @@ EXPOSE 3000
 
 ENV NODE_ENV=production
 
-# Run the Next.js standalone server
+# Clear any inherited entrypoint and run server directly
+ENTRYPOINT []
 CMD ["node", "server.js"]
