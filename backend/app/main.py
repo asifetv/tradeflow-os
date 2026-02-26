@@ -85,7 +85,7 @@ def create_app() -> FastAPI:
     async def readiness():
         """Readiness probe - check all service dependencies."""
         from sqlalchemy import text
-        from app.database import async_session_local
+        from app.database import AsyncSessionLocal
 
         checks = {
             "database": False,
@@ -95,7 +95,7 @@ def create_app() -> FastAPI:
 
         # Check database connectivity
         try:
-            async with async_session_local() as session:
+            async with AsyncSessionLocal() as session:
                 await session.execute(text("SELECT 1"))
             checks["database"] = True
         except Exception as e:
