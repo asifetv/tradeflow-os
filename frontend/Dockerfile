@@ -14,8 +14,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/public ./public
+# Copy standalone build output
 COPY --from=builder /app/.next/standalone ./
+
+# Copy static assets
 COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 3000
