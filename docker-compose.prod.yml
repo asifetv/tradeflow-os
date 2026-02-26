@@ -61,8 +61,6 @@ services:
         reservations:
           cpus: '1'
           memory: 1G
-    # Enable restart with backoff
-    restart: unless-stopped
 
   frontend:
     # Use production image from container registry
@@ -90,7 +88,6 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
-    restart: unless-stopped
 
 volumes:
   postgres_data_prod:
