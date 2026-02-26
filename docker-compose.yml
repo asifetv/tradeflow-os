@@ -140,8 +140,6 @@ services:
     volumes:
       - /app/node_modules
     command: npm run dev
-    profiles:
-      - frontend
 
 volumes:
   postgres_data:
