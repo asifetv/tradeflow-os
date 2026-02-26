@@ -14,7 +14,7 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy standalone build output
+# Copy standalone build output (includes server.js at root)
 COPY --from=builder /app/.next/standalone ./
 
 # Copy static assets
@@ -24,4 +24,5 @@ EXPOSE 3000
 
 ENV NODE_ENV=production
 
+# Run the Next.js standalone server
 CMD ["node", "server.js"]
