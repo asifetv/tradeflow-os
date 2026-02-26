@@ -64,7 +64,7 @@ services:
       APP_ENV: development
       APP_DEBUG: "true"
     ports:
-      - "127.0.0.1:8000:8000"
+      - "0.0.0.0:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -134,7 +134,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
-      - "127.0.0.1:3000:3000"
+      - "0.0.0.0:3000:3000"
     depends_on:
       - api
     volumes:
