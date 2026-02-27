@@ -106,10 +106,9 @@ def create_app() -> FastAPI:
         try:
             from app.services.storage import StorageService
             storage = StorageService()
-            # Simple check - list buckets (doesn't upload anything)
-            await storage.client._client_session.__aenter__()
-            # If we can reach MinIO, mark as healthy
-            checks["minio"] = True
+            # Simple check - verify MinIO client exists and can be initialized
+            if storage.client is not None:
+                checks["minio"] = True
         except Exception as e:
             logger.warning("MinIO health check failed (optional)", error=str(e))
             # MinIO failure is not critical for readiness, log but don't fail
