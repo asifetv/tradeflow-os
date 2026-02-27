@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     # Anthropic AI
     ANTHROPIC_API_KEY: str = ""
-    ANTHROPIC_MODEL: str = "claude-opus-4-5-20251101"
+    ANTHROPIC_MODEL: str = "claude-opus-4-6"
     ANTHROPIC_FAST_MODEL: str = "claude-haiku-4-5-20251001"
     ANTHROPIC_MAX_TOKENS: int = 4096
 
