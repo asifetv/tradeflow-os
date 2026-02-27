@@ -76,9 +76,10 @@ jobs:
           pytest tests/ -v --tb=short
 
       - name: Upload test results
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: backend-test-results
           path: backend/.pytest_cache/
           retention-days: 30
+          if-no-files-found: ignore
