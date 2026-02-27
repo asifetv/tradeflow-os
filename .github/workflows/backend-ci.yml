@@ -71,6 +71,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           JWT_SECRET_KEY: test-secret-key-do-not-use-in-production
           APP_ENV: test
+          ANTHROPIC_API_KEY: sk-test-key-for-ci-only
         run: |
           cd backend
           pytest tests/ -v --tb=short
