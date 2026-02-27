@@ -19,7 +19,7 @@ jobs:
       - name: Build Summary
         run: |
           echo "✅ All CI/CD checks passed!"
-          echo "📦 Ready for deployment"
+          echo "📦 Deploying to production..."
           echo ""
           echo "**Deployment Information:**"
           echo "- Repository: ${{ github.repository }}"
@@ -27,26 +27,83 @@ jobs:
           echo "- Commit: ${{ github.sha }}"
           echo "- Author: ${{ github.actor }}"
           echo ""
-          echo "**Docker Images Built:**"
+          echo "**Docker Images Available:**"
           echo "- ghcr.io/${{ github.repository_owner }}/tradeflow-api:latest"
           echo "- ghcr.io/${{ github.repository_owner }}/tradeflow-web:latest"
           echo ""
-          echo "**To Deploy to Your VPS:**"
-          echo "1. SSH into your VPS"
-          echo "2. Run the following commands:"
+          echo "**Starting EC2 Deployment...**"
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "🚀 Starting deployment on EC2..."
+            echo "📍 Current directory: $(pwd)"
+
+            # Navigate to project directory
+            cd /opt/tradeflow-os
+            echo "📂 Changed to: $(pwd)"
+
+            # Pull latest code from GitHub
+            echo "📥 Pulling latest code from GitHub..."
+            git pull origin main
+
+            # Pull latest Docker images
+            echo "🐳 Pulling latest Docker images..."
+            docker compose pull
+
+            # Stop old containers and start new ones
+            echo "♻️  Restarting services with new images..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+            # Wait for services to be ready
+            echo "⏳ Waiting for services to start..."
+            sleep 10
+
+            # Run database migrations
+            echo "🗄️  Running database migrations..."
+            docker compose exec -T api alembic upgrade head
+
+            # Show running containers
+            echo ""
+            echo "✅ Deployment complete! Running services:"
+            docker compose ps
+
+            # Health check
+            echo ""
+            echo "🏥 Verifying health endpoints..."
+            curl -s http://localhost:8000/healthz | head -20
+            echo ""
+            echo "✅ API is responding!"
+
+      - name: Deployment Success
+        if: success()
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "✅ Code pushed to GitHub"
+          echo "✅ Tests passed"
+          echo "✅ Docker images built"
+          echo "✅ EC2 updated with latest code and images"
           echo ""
-          echo "   cd /opt/tradeflow-os"
-          echo "   git pull origin main"
-          echo "   docker compose pull"
-          echo "   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
-          echo "   sleep 10"
-          echo "   docker compose exec api alembic upgrade head"
-          echo "   docker compose ps"
+          echo "🌐 Live at: http://${{ secrets.VPS_HOST }}"
+          echo "📱 Frontend: http://${{ secrets.VPS_HOST }}:3000"
+          echo "📚 API Docs: http://${{ secrets.VPS_HOST }}:8000/docs"
+
+      - name: Deployment Failed
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Check the logs above for details"
           echo ""
-          echo "**For Automated Deployment:**"
-          echo "Set these GitHub Secrets:"
-          echo "- VPS_HOST: Your VPS IP or hostname"
-          echo "- VPS_USER: SSH username (ec2-user, ubuntu, etc.)"
-          echo "- VPS_SSH_KEY: Private SSH key"
+          echo "Common issues:"
+          echo "1. SSH key not configured (check GitHub Secrets)"
+          echo "2. EC2 not running or unreachable"
+          echo "3. Docker command failed on EC2"
           echo ""
-          echo "Then uncomment the SSH deployment step in this workflow"
+          echo "To fix:"
+          echo "1. Verify VPS_HOST, VPS_USER, VPS_SSH_KEY in GitHub Secrets"
+          echo "2. SSH manually to debug: ssh -i key.pem ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          echo "3. Check /opt/tradeflow-os/docker-compose.log for errors"
