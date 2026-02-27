@@ -3,10 +3,6 @@ name: Build & Push Frontend Docker Image
 on:
   push:
     branches: [main, develop]
-    paths:
-      - 'frontend/**'
-      - 'Dockerfile.frontend'
-      - '.github/workflows/docker-frontend.yml'
   workflow_dispatch:
 
 jobs:
