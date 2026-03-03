@@ -51,7 +51,7 @@ jobs:
           echo "📍 Starting deployment script on EC2..."
 
           # Navigate to project directory
-          cd /opt/tradeflow-os
+          cd /opt/tradeflow
           echo "📂 Changed to: $(pwd)"
 
           # Pull latest code from GitHub
