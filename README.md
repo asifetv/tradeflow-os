@@ -491,3 +491,4 @@ Built with ❤️ for the oil & gas industry | Generated with Claude Code
 echo # Auto-deployment test
 # Auto-deployment test
 # Deploy with native SSH
+# Test deployment with correct path
