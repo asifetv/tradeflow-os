@@ -490,3 +490,4 @@ For issues or questions, contact the development team.
 Built with ❤️ for the oil & gas industry | Generated with Claude Code
 echo # Auto-deployment test
 # Auto-deployment test
+# Deploy with native SSH
