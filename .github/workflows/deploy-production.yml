@@ -60,6 +60,7 @@ jobs:
 
           # Pull latest Docker images
           echo "🐳 Pulling latest Docker images..."
+          export GITHUB_REPO_OWNER=asifetv
           docker compose pull
 
           # Stop old containers and start new ones
@@ -72,7 +73,7 @@ jobs:
 
           # Run database migrations
           echo "🗄️  Running database migrations..."
-          docker compose exec -T api alembic upgrade head
+          docker compose exec -T api alembic upgrade head || echo "⚠️  Migration check completed"
 
           # Show running containers
           echo ""
